@@ -1,18 +1,22 @@
 from rest_framework.viewsets import ModelViewSet
+from rest_framework.permissions import AllowAny
+from rest_framework.generics import CreateAPIView
 
 from myauth.models import User
-from myauth.serializers import UserNestedSerializer, UserFullDetailSerializer
 from myauth.serializers import (UserListSerializer,
                                 UserDetailSerializer,
+                                UserCreateSerializer,
+                                UserUpdateSerializer)
 
 
 class UserViewset(ModelViewSet):
-    serializer_class = UserNestedSerializer
-    detail_serializer_class = UserFullDetailSerializer
     serializer_class = UserListSerializer
     serializer_map = {
         'list': UserListSerializer,
+        'create': UserCreateSerializer,
+        'update': UserUpdateSerializer,
         'retrieve': UserDetailSerializer,
+        'partial_update': UserUpdateSerializer,
     }
 
     def get_queryset(self):
@@ -23,3 +27,9 @@ class UserViewset(ModelViewSet):
             return self.serializer_map[self.action]
         else:
             return super().get_serializer_class()
+
+
+# class UserCreateViewSet(CreateAPIView):
+#     queryset = User.objects.all()
+#     serializer_class = UserNestedSerializer
+#     permission_classes = [AllowAny]

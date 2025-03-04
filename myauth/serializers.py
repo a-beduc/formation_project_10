@@ -1,4 +1,6 @@
-from rest_framework.serializers import ModelSerializer, HyperlinkedIdentityField
+from rest_framework.serializers import (ModelSerializer,
+                                        HyperlinkedIdentityField,
+                                        CharField)
 from myauth.models import User
 
 
@@ -34,3 +36,54 @@ class UserSummarySerializer(ModelSerializer):
             'id',
             'username',
         ]
+
+
+class UserCreateSerializer(ModelSerializer):
+    password = CharField(
+        write_only=True,
+        required=True,
+        style={'input_type': 'password'},
+    )
+
+    class Meta:
+        model = User
+        fields = [
+            'username',
+            'password',
+            'date_of_birth',
+            'can_be_contacted',
+            'can_data_be_shared',
+        ]
+
+    def create(self, validated_data):
+        plain_password = validated_data.pop('password', None)
+        user = super(UserCreateSerializer, self).create(validated_data)
+        user.set_password(plain_password)
+        user.save()
+        return user
+
+
+class UserUpdateSerializer(ModelSerializer):
+    password = CharField(
+        write_only=True,
+        required=False,
+        style={'input_type': 'password'},
+    )
+
+    class Meta:
+        model = User
+        fields = [
+            'username',
+            'password',
+            'date_of_birth',
+            'can_be_contacted',
+            'can_data_be_shared',
+        ]
+
+    def update(self, instance, validated_data):
+        plain_password = validated_data.pop('password', None)
+        user = super(UserUpdateSerializer, self).update(instance, validated_data)
+        if plain_password:
+            user.set_password(plain_password)
+            user.save()
+        return user
