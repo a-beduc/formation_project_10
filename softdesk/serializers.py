@@ -1,11 +1,11 @@
 from rest_framework.serializers import ModelSerializer, HyperlinkedIdentityField, HyperlinkedModelSerializer
 from rest_framework_nested.relations import NestedHyperlinkedRelatedField, NestedHyperlinkedIdentityField
-from myauth.serializers import UserNestedSerializer, UserSummarySerializer
+from myauth.serializers import UserListSerializer, UserSummarySerializer
 from softdesk.models import Project, Issue, Contributor, Comment
 
 
 class ContributorDetailSerializer(ModelSerializer):
-    user = UserNestedSerializer(read_only=True)
+    user = UserListSerializer(read_only=True)
 
     class Meta:
         model = Contributor
@@ -61,7 +61,7 @@ class ProjectListSerializer(ModelSerializer):
 
 
 class ProjectDetailSerializer(ModelSerializer):
-    author = UserNestedSerializer(read_only=True)
+    author = UserListSerializer(read_only=True)
     link_contributor = HyperlinkedIdentityField(
         view_name='project-contributor-list',
         lookup_field='pk',
@@ -111,7 +111,7 @@ class CommentListSerializer(ModelSerializer):
 
 
 class CommentDetailSerializer(ModelSerializer):
-    author = UserNestedSerializer(read_only=True)
+    author = UserListSerializer(read_only=True)
 
     class Meta:
         model = Comment
@@ -153,7 +153,7 @@ class IssueListSerializer(ModelSerializer):
 
 
 class IssueDetailSerializer(ModelSerializer):
-    author = UserNestedSerializer(read_only=True)
+    author = UserListSerializer(read_only=True)
     comments = CommentSummarySerializer(many=True, read_only=True)
     link_comment = NestedHyperlinkedIdentityField(
         view_name='issue-comment-list',

@@ -2,7 +2,7 @@ from rest_framework.serializers import ModelSerializer, HyperlinkedIdentityField
 from myauth.models import User
 
 
-class UserFullDetailSerializer(ModelSerializer):
+class UserDetailSerializer(ModelSerializer):
     class Meta:
         model = User
         fields = [
@@ -15,7 +15,7 @@ class UserFullDetailSerializer(ModelSerializer):
         ]
 
 
-class UserNestedSerializer(ModelSerializer):
+class UserListSerializer(ModelSerializer):
     user_detail = HyperlinkedIdentityField(view_name='user-detail', lookup_field='pk')
 
     class Meta:
