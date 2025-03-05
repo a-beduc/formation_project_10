@@ -1,65 +1,97 @@
+from django.core.exceptions import ValidationError
+
+from sqlite3 import IntegrityError
+
 from rest_framework.viewsets import ModelViewSet
 
 from softdesk.models import Project, Contributor, Issue, Comment
-from softdesk.serializers import (ProjectListSerializer, ProjectDetailSerializer,
-                                  ContributorSummarySerializer, ContributorListSerializer, ContributorDetailSerializer,
-                                  IssueListSerializer, IssueDetailSerializer,
-                                  CommentListSerializer, CommentDetailSerializer)
+from softdesk.serializers import (
+    ProjectListSerializer, ProjectDetailSerializer, ProjectCreateSerializer, ProjectUpdateSerializer,
+    ContributorListSerializer, ContributorDetailSerializer, ContributorCreateSerializer,
+    IssueListSerializer, IssueDetailSerializer, IssueCreateSerializer, IssueUpdateSerializer,
+    CommentListSerializer, CommentDetailSerializer, CommentCreateSerializer, CommentUpdateSerializer
+)
 
 
-class ProjectViewset(ModelViewSet):
-    serializer_class = ProjectListSerializer
-    detail_serializer_class = ProjectDetailSerializer
-    query_set = Project.objects.all()
-    lookup_field = 'pk'
-
-    def get_queryset(self):
-        return self.query_set
+class UtilityViewSet(ModelViewSet):
+    # need to be implemented in children classes
+    serializer_map = {}
 
     def get_serializer_class(self):
-        if self.action == 'retrieve':
-            return self.detail_serializer_class
+        if self.action in self.serializer_map.keys():
+            return self.serializer_map[self.action]
         else:
             return super().get_serializer_class()
 
 
-class ContributorViewset(ModelViewSet):
+class ProjectViewset(UtilityViewSet):
+    serializer_class = ProjectListSerializer
+    serializer_map = {
+        'list': ProjectListSerializer,
+        'retrieve': ProjectDetailSerializer,
+        'update': ProjectUpdateSerializer,
+        'create': ProjectCreateSerializer,
+        'partial_update': ProjectUpdateSerializer,
+    }
+
+    def get_queryset(self):
+        return Project.objects.all()
+
+
+class ContributorViewset(UtilityViewSet):
     serializer_class = ContributorListSerializer
-    detail_serializer_class = ContributorDetailSerializer
+    serializer_map = {
+        'list': ContributorListSerializer,
+        'retrieve': ContributorDetailSerializer,
+        'create': ContributorCreateSerializer,
+    }
+    http_method_names = ['get', 'post', 'delete', 'options', 'head']
 
     def get_queryset(self):
         return Contributor.objects.filter(project_id=self.kwargs['project_pk'])
 
-    def get_serializer_class(self):
-        if self.action == 'retrieve':
-            return self.detail_serializer_class
-        else:
-            return super().get_serializer_class()
+    def perform_create(self, serializer):
+        project = Project.objects.get(pk=self.kwargs['project_pk'])
+        user = serializer.validated_data['user']
+
+        # Need to deal with this error sooner or later
+        try:
+            serializer.save(project=project, user=user)
+        except IntegrityError:
+            raise ValidationError({"error": 'Cet utilisateur est déjà contributeur du projet'})
 
 
-class IssueViewset(ModelViewSet):
+class IssueViewset(UtilityViewSet):
     serializer_class = IssueListSerializer
-    detail_serializer_class = IssueDetailSerializer
+    serializer_map = {
+        'list': IssueListSerializer,
+        'retrieve': IssueDetailSerializer,
+        'create': IssueCreateSerializer,
+        'partial_update': IssueUpdateSerializer,
+        'update': IssueUpdateSerializer,
+    }
 
     def get_queryset(self):
         return Issue.objects.filter(project_id=self.kwargs['project_pk'])
 
-    def get_serializer_class(self):
-        if self.action == 'retrieve':
-            return self.detail_serializer_class
-        else:
-            return super().get_serializer_class()
+    def perform_create(self, serializer):
+        project = Project.objects.get(pk=self.kwargs['project_pk'])
+        serializer.save(project=project)
 
 
-class CommentViewset(ModelViewSet):
+class CommentViewset(UtilityViewSet):
     serializer_class = CommentListSerializer
-    detail_serializer_class = CommentDetailSerializer
+    serializer_map = {
+        'list': CommentListSerializer,
+        'retrieve': CommentDetailSerializer,
+        'create': CommentCreateSerializer,
+        'partial_update': CommentUpdateSerializer,
+        'update': CommentUpdateSerializer,
+    }
 
     def get_queryset(self):
         return Comment.objects.filter(issue_id=self.kwargs['issue_pk'])
 
-    def get_serializer_class(self):
-        if self.action == 'retrieve':
-            return self.detail_serializer_class
-        else:
-            return super().get_serializer_class()
+    def perform_create(self, serializer):
+        issue = Issue.objects.get(pk=self.kwargs['issue_pk'])
+        serializer.save(issue=issue)
