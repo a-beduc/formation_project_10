@@ -1,20 +1,8 @@
-from rest_framework.serializers import ModelSerializer, HyperlinkedIdentityField, HyperlinkedModelSerializer
-from rest_framework_nested.relations import NestedHyperlinkedRelatedField, NestedHyperlinkedIdentityField
+from rest_framework.serializers import ModelSerializer, HyperlinkedIdentityField
+from rest_framework_nested.relations import NestedHyperlinkedIdentityField
 from myauth.serializers import UserListSerializer, UserSummarySerializer
 from softdesk.models import Project, Issue, Contributor, Comment
-
-
-class ContributorDetailSerializer(ModelSerializer):
-    user = UserListSerializer(read_only=True)
-
-    class Meta:
-        model = Contributor
-        fields = [
-            'id',
-            'user',
-            'project',
-            'time_created'
-        ]
+from myauth.models import User
 
 
 class ContributorListSerializer(ModelSerializer):
@@ -36,8 +24,30 @@ class ContributorListSerializer(ModelSerializer):
         ]
 
 
+class ContributorDetailSerializer(ModelSerializer):
+    user = UserListSerializer(read_only=True)
+
+    class Meta:
+        model = Contributor
+        fields = [
+            'id',
+            'user',
+            'project',
+            'time_created'
+        ]
+
+
 class ContributorSummarySerializer(ModelSerializer):
     user = UserSummarySerializer(read_only=True)
+
+    class Meta:
+        model = Contributor
+        fields = [
+            'user',
+        ]
+
+
+class ContributorCreateSerializer(ModelSerializer):
 
     class Meta:
         model = Contributor
@@ -91,6 +101,31 @@ class ProjectDetailSerializer(ModelSerializer):
         ]
 
 
+class ProjectCreateSerializer(ModelSerializer):
+    # Enlever author de la liste quand on met les perms self.request = author
+
+    class Meta:
+        model = Project
+        fields = [
+            'author',
+            'title',
+            'description',
+            'type',
+        ]
+
+
+class ProjectUpdateSerializer(ModelSerializer):
+
+    class Meta:
+        model = Project
+        fields = [
+            'author',
+            'title',
+            'description',
+            'type',
+        ]
+
+
 class CommentListSerializer(ModelSerializer):
     author = UserSummarySerializer(read_only=True)
     comment_detail = NestedHyperlinkedIdentityField(
@@ -106,6 +141,7 @@ class CommentListSerializer(ModelSerializer):
         fields = [
             'id',
             'author',
+            'description',
             'comment_detail',
         ]
 
@@ -129,6 +165,25 @@ class CommentSummarySerializer(ModelSerializer):
         model = Comment
         fields = [
             'id',
+        ]
+
+
+class CommentCreateSerializer(ModelSerializer):
+    # author à retirer car comment = request.user
+
+    class Meta:
+        model = Comment
+        fields = [
+            'author',
+            'description',
+        ]
+
+
+class CommentUpdateSerializer(ModelSerializer):
+    class Meta:
+        model = Comment
+        fields = [
+            'description'
         ]
 
 
@@ -179,3 +234,67 @@ class IssueDetailSerializer(ModelSerializer):
             'comments',
             'link_comment'
         ]
+
+
+class IssueCreateSerializer(ModelSerializer):
+    # enlever author de la liste quand on aura les perms sur qui accède à cette ressource car author = request.user
+
+    class Meta:
+        model = Issue
+        fields = [
+            'author',
+            'title',
+            'description',
+            'to_user',
+            'priority',
+            'type',
+            'status',
+        ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        project_pk = self.context['view'].kwargs['project_pk']
+        self.fields["to_user"].queryset = User.objects.filter(
+            contributor__project_id=project_pk
+        )
+
+    # seems like it's not working and not used bc
+    # def validate_to_user(self, value):
+    #     project_pk = self.context['view'].kwargs['project_pk']
+    #     is_contributor = Contributor.objects.filter(
+    #         project_id=project_pk, user_id=value.pk
+    #     ).exists()
+    #     if not is_contributor:
+    #         raise ValidationError('User is not a contributor')
+    #     return value
+
+
+class IssueUpdateSerializer(ModelSerializer):
+
+    class Meta:
+        model = Issue
+        fields = [
+            'title',
+            'description',
+            'to_user',
+            'priority',
+            'type',
+            'status',
+        ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        project_pk = self.context['view'].kwargs['project_pk']
+        self.fields["to_user"].queryset = User.objects.filter(
+            contributor__project_id=project_pk
+        )
+
+    # seems like it's not working and not useful
+    # def validate_to_user(self, value):
+    #     project_pk = self.context['view'].kwargs['project_pk']
+    #     is_contributor = Contributor.objects.filter(
+    #         project_id=project_pk, user_id=value.pk
+    #     ).exists()
+    #     if not is_contributor:
+    #         raise ValidationError('User is not a contributor')
+    #     return value
