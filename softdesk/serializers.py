@@ -102,12 +102,9 @@ class ProjectDetailSerializer(ModelSerializer):
 
 
 class ProjectCreateSerializer(ModelSerializer):
-    # Enlever author de la liste quand on met les perms self.request = author
-
     class Meta:
         model = Project
         fields = [
-            'author',
             'title',
             'description',
             'type',
@@ -115,11 +112,9 @@ class ProjectCreateSerializer(ModelSerializer):
 
 
 class ProjectUpdateSerializer(ModelSerializer):
-
     class Meta:
         model = Project
         fields = [
-            'author',
             'title',
             'description',
             'type',

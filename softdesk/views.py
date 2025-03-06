@@ -3,6 +3,7 @@ from django.core.exceptions import ValidationError
 from sqlite3 import IntegrityError
 
 from rest_framework.viewsets import ModelViewSet
+from rest_framework.permissions import IsAuthenticated
 
 from softdesk.models import Project, Contributor, Issue, Comment
 from softdesk.serializers import (
@@ -11,11 +12,14 @@ from softdesk.serializers import (
     IssueListSerializer, IssueDetailSerializer, IssueCreateSerializer, IssueUpdateSerializer,
     CommentListSerializer, CommentDetailSerializer, CommentCreateSerializer, CommentUpdateSerializer
 )
+from softdesk.permissions import IsProjectAuthor, IsProjectContributor
+from myauth.permissions import IsAdminAuthenticated
 
 
 class UtilityViewSet(ModelViewSet):
     # need to be implemented in children classes
     serializer_map = {}
+    permission_classes = [IsAuthenticated]
 
     def get_serializer_class(self):
         if self.action in self.serializer_map.keys():
@@ -36,6 +40,26 @@ class ProjectViewset(UtilityViewSet):
 
     def get_queryset(self):
         return Project.objects.all()
+
+    def perform_create(self, serializer):
+        author = self.request.user
+        serializer.save(author=author)
+
+    def get_permissions(self):
+        if self.action in ['update', 'partial_update', 'destroy']:
+            self.permission_classes = [
+                (IsAuthenticated & IsProjectAuthor)
+                | IsAdminAuthenticated
+            ]
+        elif self.action in ['retrieve']:
+            self.permission_classes = [
+                (IsAuthenticated & IsProjectAuthor)
+                | (IsAuthenticated & IsProjectContributor)
+                | IsAdminAuthenticated
+            ]
+        else:
+            self.permission_classes = [IsAuthenticated]
+        return [permission() for permission in self.permission_classes]
 
 
 class ContributorViewset(UtilityViewSet):
