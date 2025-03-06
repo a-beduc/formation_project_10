@@ -7,4 +7,4 @@ def validate_age(value):
     age = today.year - value.year - ((today.month, today.day) < (value.month, value.day))
 
     if age < 15:
-        raise ValidationError('Vous devez avoir au moins 15 ans pour vous inscrire.')
+        raise ValidationError('Vous devez avoir au moins 15 ans pour avoir un compte.')

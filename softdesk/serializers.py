@@ -1,20 +1,8 @@
-from rest_framework.serializers import ModelSerializer, HyperlinkedIdentityField, HyperlinkedModelSerializer
-from rest_framework_nested.relations import NestedHyperlinkedRelatedField, NestedHyperlinkedIdentityField
-from myauth.serializers import UserNestedSerializer, UserSummarySerializer
+from rest_framework.serializers import ModelSerializer, HyperlinkedIdentityField, PrimaryKeyRelatedField
+from rest_framework_nested.relations import NestedHyperlinkedIdentityField
+from myauth.serializers import UserListSerializer, UserSummarySerializer
 from softdesk.models import Project, Issue, Contributor, Comment
-
-
-class ContributorDetailSerializer(ModelSerializer):
-    user = UserNestedSerializer(read_only=True)
-
-    class Meta:
-        model = Contributor
-        fields = [
-            'id',
-            'user',
-            'project',
-            'time_created'
-        ]
+from myauth.models import User
 
 
 class ContributorListSerializer(ModelSerializer):
@@ -36,8 +24,30 @@ class ContributorListSerializer(ModelSerializer):
         ]
 
 
+class ContributorDetailSerializer(ModelSerializer):
+    user = UserListSerializer(read_only=True)
+
+    class Meta:
+        model = Contributor
+        fields = [
+            'id',
+            'user',
+            'project',
+            'time_created'
+        ]
+
+
 class ContributorSummarySerializer(ModelSerializer):
     user = UserSummarySerializer(read_only=True)
+
+    class Meta:
+        model = Contributor
+        fields = [
+            'user',
+        ]
+
+
+class ContributorCreateSerializer(ModelSerializer):
 
     class Meta:
         model = Contributor
@@ -61,7 +71,7 @@ class ProjectListSerializer(ModelSerializer):
 
 
 class ProjectDetailSerializer(ModelSerializer):
-    author = UserNestedSerializer(read_only=True)
+    author = UserListSerializer(read_only=True)
     link_contributor = HyperlinkedIdentityField(
         view_name='project-contributor-list',
         lookup_field='pk',
@@ -91,6 +101,26 @@ class ProjectDetailSerializer(ModelSerializer):
         ]
 
 
+class ProjectCreateSerializer(ModelSerializer):
+    class Meta:
+        model = Project
+        fields = [
+            'title',
+            'description',
+            'type',
+        ]
+
+
+class ProjectUpdateSerializer(ModelSerializer):
+    class Meta:
+        model = Project
+        fields = [
+            'title',
+            'description',
+            'type',
+        ]
+
+
 class CommentListSerializer(ModelSerializer):
     author = UserSummarySerializer(read_only=True)
     comment_detail = NestedHyperlinkedIdentityField(
@@ -106,12 +136,13 @@ class CommentListSerializer(ModelSerializer):
         fields = [
             'id',
             'author',
+            'description',
             'comment_detail',
         ]
 
 
 class CommentDetailSerializer(ModelSerializer):
-    author = UserNestedSerializer(read_only=True)
+    author = UserListSerializer(read_only=True)
 
     class Meta:
         model = Comment
@@ -129,6 +160,22 @@ class CommentSummarySerializer(ModelSerializer):
         model = Comment
         fields = [
             'id',
+        ]
+
+
+class CommentCreateSerializer(ModelSerializer):
+    class Meta:
+        model = Comment
+        fields = [
+            'description',
+        ]
+
+
+class CommentUpdateSerializer(ModelSerializer):
+    class Meta:
+        model = Comment
+        fields = [
+            'description'
         ]
 
 
@@ -153,7 +200,7 @@ class IssueListSerializer(ModelSerializer):
 
 
 class IssueDetailSerializer(ModelSerializer):
-    author = UserNestedSerializer(read_only=True)
+    author = UserListSerializer(read_only=True)
     comments = CommentSummarySerializer(many=True, read_only=True)
     link_comment = NestedHyperlinkedIdentityField(
         view_name='issue-comment-list',
@@ -162,6 +209,7 @@ class IssueDetailSerializer(ModelSerializer):
         lookup_url_kwarg='issue_pk',
         read_only=True
     )
+    to_user = UserSummarySerializer(read_only=True)
 
     class Meta:
         model = Issue
@@ -179,3 +227,53 @@ class IssueDetailSerializer(ModelSerializer):
             'comments',
             'link_comment'
         ]
+
+
+class IssueCreateSerializer(ModelSerializer):
+    to_user = PrimaryKeyRelatedField(
+        queryset=User.objects.none(),
+        allow_null=True,
+    )
+
+    class Meta:
+        model = Issue
+        fields = [
+            'title',
+            'description',
+            'to_user',
+            'priority',
+            'type',
+            'status',
+        ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        project_pk = self.context['view'].kwargs['project_pk']
+        self.fields["to_user"].queryset = User.objects.filter(
+            contributor__project_id=project_pk
+        )
+
+
+class IssueUpdateSerializer(ModelSerializer):
+    to_user = PrimaryKeyRelatedField(
+        queryset=User.objects.none(),
+        allow_null=True,
+    )
+
+    class Meta:
+        model = Issue
+        fields = [
+            'title',
+            'description',
+            'to_user',
+            'priority',
+            'type',
+            'status',
+        ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        project_pk = self.context['view'].kwargs['project_pk']
+        self.fields["to_user"].queryset = User.objects.filter(
+            contributor__project_id=project_pk
+        )

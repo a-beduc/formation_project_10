@@ -19,7 +19,7 @@ class Project(models.Model):
     time_created = models.DateTimeField(auto_now_add=True)
 
 
-@receiver(post_save, sender=Project, dispatch_uid='assign_contributor')
+@receiver(post_save, sender=Project)
 def assign_contributor(instance, **kwargs):
     contributor = Contributor(user=instance.author, project=instance)
     contributor.save()
@@ -29,6 +29,16 @@ class Contributor(models.Model):
     user = models.ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     project = models.ForeignKey(to=Project, on_delete=models.CASCADE, related_name='contributors')
     time_created = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        # unique_together = ('user', 'project'),
+        constraints = [models.UniqueConstraint(fields=['user', 'project'], name='unique_contributor')]
+
+
+# @receiver(pre_save, sender=Contributor)
+# def prevent_duplicate_contributor(instance, **kwargs):
+#     if Contributor.objects.filter(user=instance.user, project=instance.project).exists():
+#         raise ValidationError('Cet utilisateur est déjà contributeur de ce projet.')
 
 
 class Issue(models.Model):
