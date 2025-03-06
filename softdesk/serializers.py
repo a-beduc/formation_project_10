@@ -1,4 +1,4 @@
-from rest_framework.serializers import ModelSerializer, HyperlinkedIdentityField
+from rest_framework.serializers import ModelSerializer, HyperlinkedIdentityField, PrimaryKeyRelatedField
 from rest_framework_nested.relations import NestedHyperlinkedIdentityField
 from myauth.serializers import UserListSerializer, UserSummarySerializer
 from softdesk.models import Project, Issue, Contributor, Comment
@@ -238,6 +238,10 @@ class IssueDetailSerializer(ModelSerializer):
 
 class IssueCreateSerializer(ModelSerializer):
     # enlever author de la liste quand on aura les perms sur qui accède à cette ressource car author = request.user
+    to_user = PrimaryKeyRelatedField(
+        queryset=User.objects.none(),
+        allow_null=True,
+    )
 
     class Meta:
         model = Issue
@@ -270,6 +274,10 @@ class IssueCreateSerializer(ModelSerializer):
 
 
 class IssueUpdateSerializer(ModelSerializer):
+    to_user = PrimaryKeyRelatedField(
+        queryset=User.objects.none(),
+        allow_null=True,
+    )
 
     class Meta:
         model = Issue
