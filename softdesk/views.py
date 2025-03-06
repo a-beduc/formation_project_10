@@ -11,8 +11,7 @@ from softdesk.serializers import (
     IssueListSerializer, IssueDetailSerializer, IssueCreateSerializer, IssueUpdateSerializer,
     CommentListSerializer, CommentDetailSerializer, CommentCreateSerializer, CommentUpdateSerializer
 )
-from softdesk.permissions import (IsProjectAuthor, IsProjectContributor, ContributorIsProjectAuthor,
-                                  ContributorIsProjectContributor)
+from softdesk.permissions import IsProjectAuthor, IsProjectContributor, IsResourceAuthor, IsUserContributor
 from myauth.permissions import IsAdminAuthenticated
 
 
@@ -48,13 +47,12 @@ class ProjectViewset(UtilityViewSet):
     def get_permissions(self):
         if self.action in ['update', 'partial_update', 'destroy']:
             self.permission_classes = [
-                (IsAuthenticated & IsProjectAuthor)
+                (IsAuthenticated & IsResourceAuthor)
                 | IsAdminAuthenticated
             ]
         elif self.action in ['retrieve']:
             self.permission_classes = [
-                (IsAuthenticated & IsProjectAuthor)
-                | (IsAuthenticated & IsProjectContributor)
+                (IsAuthenticated & IsProjectContributor)
                 | IsAdminAuthenticated
             ]
         else:
@@ -86,14 +84,19 @@ class ContributorViewset(UtilityViewSet):
     def get_permissions(self):
         if self.action == 'create':
             self.permission_classes = [
-                (IsAuthenticated & ContributorIsProjectAuthor)
+                (IsAuthenticated & IsProjectAuthor)
+                | IsAdminAuthenticated
+            ]
+        elif self.action == 'destroy':
+            self.permission_classes = [
+                (IsAuthenticated & IsUserContributor)
+                | (IsAuthenticated & IsProjectAuthor)
                 | IsAdminAuthenticated
             ]
         else:
             self.permission_classes = [
-                (IsAuthenticated & ContributorIsProjectAuthor)
+                (IsAuthenticated & IsProjectContributor)
                 | IsAdminAuthenticated
-                | (IsAuthenticated & ContributorIsProjectContributor)
             ]
         return [permission() for permission in self.permission_classes]
 
