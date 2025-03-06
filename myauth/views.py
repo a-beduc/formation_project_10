@@ -1,12 +1,13 @@
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import AllowAny
-from rest_framework.generics import CreateAPIView
 
 from myauth.models import User
 from myauth.serializers import (UserListSerializer,
                                 UserDetailSerializer,
                                 UserCreateSerializer,
                                 UserUpdateSerializer)
+
+from myauth.permissions import IsAdminAuthenticated, IsOwner
 
 
 class UserViewset(ModelViewSet):
@@ -28,8 +29,14 @@ class UserViewset(ModelViewSet):
         else:
             return super().get_serializer_class()
 
-
-# class UserCreateViewSet(CreateAPIView):
-#     queryset = User.objects.all()
-#     serializer_class = UserNestedSerializer
-#     permission_classes = [AllowAny]
+    def get_permissions(self):
+        if self.action in [
+            'retrieve',
+            'update',
+            'partial_update',
+            'destroy',
+        ]:
+            permission_classes = [IsOwner | IsAdminAuthenticated]
+        else:
+            permission_classes = [AllowAny]
+        return [permission() for permission in permission_classes]
