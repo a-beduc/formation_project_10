@@ -116,7 +116,26 @@ class IssueViewset(UtilityViewSet):
 
     def perform_create(self, serializer):
         project = Project.objects.get(pk=self.kwargs['project_pk'])
-        serializer.save(project=project)
+        author = self.request.user
+        serializer.save(project=project, author=author)
+
+    def get_permissions(self):
+        if self.action in ['update', 'partial_update']:
+            self.permission_classes = [
+                (IsAuthenticated & IsResourceAuthor)
+                | IsAdminAuthenticated
+            ]
+        elif self.action == 'destroy':
+            self.permission_classes = [
+                (IsAuthenticated & IsResourceAuthor)
+                | (IsAuthenticated & IsProjectAuthor)
+                | IsAdminAuthenticated
+            ]
+        else:
+            self.permission_classes = [
+                (IsAuthenticated & IsProjectContributor)
+            ]
+        return [permission() for permission in self.permission_classes]
 
 
 class CommentViewset(UtilityViewSet):
@@ -134,4 +153,23 @@ class CommentViewset(UtilityViewSet):
 
     def perform_create(self, serializer):
         issue = Issue.objects.get(pk=self.kwargs['issue_pk'])
-        serializer.save(issue=issue)
+        author = self.request.user
+        serializer.save(issue=issue, author=author)
+
+    def get_permissions(self):
+        if self.action in ['update', 'partial_update']:
+            self.permission_classes = [
+                (IsAuthenticated & IsResourceAuthor)
+                | IsAdminAuthenticated
+            ]
+        elif self.action == 'destroy':
+            self.permission_classes = [
+                (IsAuthenticated & IsResourceAuthor)
+                | (IsAuthenticated & IsProjectAuthor)
+                | IsAdminAuthenticated
+            ]
+        else:
+            self.permission_classes = [
+                (IsAuthenticated & IsProjectContributor)
+            ]
+        return [permission() for permission in self.permission_classes]
