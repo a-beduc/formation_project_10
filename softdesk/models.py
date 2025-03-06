@@ -31,7 +31,8 @@ class Contributor(models.Model):
     time_created = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ('user', 'project'),
+        # unique_together = ('user', 'project'),
+        constraints = [models.UniqueConstraint(fields=['user', 'project'], name='unique_contributor')]
 
 
 # @receiver(pre_save, sender=Contributor)
