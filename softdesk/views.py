@@ -1,7 +1,6 @@
-from django.core.exceptions import ValidationError
+from django.db import IntegrityError
 
-from sqlite3 import IntegrityError
-
+from rest_framework.exceptions import ValidationError
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated
 
@@ -78,7 +77,6 @@ class ContributorViewset(UtilityViewSet):
         project = Project.objects.get(pk=self.kwargs['project_pk'])
         user = serializer.validated_data['user']
 
-        # Need to deal with this error sooner or later
         try:
             serializer.save(project=project, user=user)
         except IntegrityError:
