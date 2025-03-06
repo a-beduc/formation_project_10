@@ -11,7 +11,8 @@ from softdesk.serializers import (
     IssueListSerializer, IssueDetailSerializer, IssueCreateSerializer, IssueUpdateSerializer,
     CommentListSerializer, CommentDetailSerializer, CommentCreateSerializer, CommentUpdateSerializer
 )
-from softdesk.permissions import IsProjectAuthor, IsProjectContributor
+from softdesk.permissions import (IsProjectAuthor, IsProjectContributor, ContributorIsProjectAuthor,
+                                  ContributorIsProjectContributor)
 from myauth.permissions import IsAdminAuthenticated
 
 
@@ -81,6 +82,20 @@ class ContributorViewset(UtilityViewSet):
             serializer.save(project=project, user=user)
         except IntegrityError:
             raise ValidationError({"error": 'Cet utilisateur est déjà contributeur du projet'})
+
+    def get_permissions(self):
+        if self.action == 'create':
+            self.permission_classes = [
+                (IsAuthenticated & ContributorIsProjectAuthor)
+                | IsAdminAuthenticated
+            ]
+        else:
+            self.permission_classes = [
+                (IsAuthenticated & ContributorIsProjectAuthor)
+                | IsAdminAuthenticated
+                | (IsAuthenticated & ContributorIsProjectContributor)
+            ]
+        return [permission() for permission in self.permission_classes]
 
 
 class IssueViewset(UtilityViewSet):
