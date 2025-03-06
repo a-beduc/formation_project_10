@@ -164,12 +164,9 @@ class CommentSummarySerializer(ModelSerializer):
 
 
 class CommentCreateSerializer(ModelSerializer):
-    # author à retirer car comment = request.user
-
     class Meta:
         model = Comment
         fields = [
-            'author',
             'description',
         ]
 
@@ -212,6 +209,7 @@ class IssueDetailSerializer(ModelSerializer):
         lookup_url_kwarg='issue_pk',
         read_only=True
     )
+    to_user = UserSummarySerializer(read_only=True)
 
     class Meta:
         model = Issue
@@ -232,7 +230,6 @@ class IssueDetailSerializer(ModelSerializer):
 
 
 class IssueCreateSerializer(ModelSerializer):
-    # enlever author de la liste quand on aura les perms sur qui accède à cette ressource car author = request.user
     to_user = PrimaryKeyRelatedField(
         queryset=User.objects.none(),
         allow_null=True,
@@ -241,7 +238,6 @@ class IssueCreateSerializer(ModelSerializer):
     class Meta:
         model = Issue
         fields = [
-            'author',
             'title',
             'description',
             'to_user',
@@ -256,16 +252,6 @@ class IssueCreateSerializer(ModelSerializer):
         self.fields["to_user"].queryset = User.objects.filter(
             contributor__project_id=project_pk
         )
-
-    # seems like it's not working and not used bc
-    # def validate_to_user(self, value):
-    #     project_pk = self.context['view'].kwargs['project_pk']
-    #     is_contributor = Contributor.objects.filter(
-    #         project_id=project_pk, user_id=value.pk
-    #     ).exists()
-    #     if not is_contributor:
-    #         raise ValidationError('User is not a contributor')
-    #     return value
 
 
 class IssueUpdateSerializer(ModelSerializer):
@@ -291,13 +277,3 @@ class IssueUpdateSerializer(ModelSerializer):
         self.fields["to_user"].queryset = User.objects.filter(
             contributor__project_id=project_pk
         )
-
-    # seems like it's not working and not useful
-    # def validate_to_user(self, value):
-    #     project_pk = self.context['view'].kwargs['project_pk']
-    #     is_contributor = Contributor.objects.filter(
-    #         project_id=project_pk, user_id=value.pk
-    #     ).exists()
-    #     if not is_contributor:
-    #         raise ValidationError('User is not a contributor')
-    #     return value
