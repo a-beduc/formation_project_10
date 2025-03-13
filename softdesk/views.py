@@ -14,11 +14,19 @@ from softdesk.serializers import (
 from softdesk.permissions import IsProjectAuthor, IsProjectContributor, IsResourceAuthor, IsUserContributor
 from myauth.permissions import IsAdminAuthenticated
 
+from softdesk.utils import utils
+
 
 class UtilityViewSet(ModelViewSet):
     # need to be implemented in children classes
     serializer_map = {}
-    permission_classes = [IsAuthenticated]
+    permission_map = {}
+    default_permissions = []
+
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        cls.serializer_map = utils.flatten_tuple_of_keys(cls.serializer_map)
+        cls.permission_map = utils.flatten_tuple_of_keys(cls.permission_map)
 
     def get_serializer_class(self):
         if self.action in self.serializer_map.keys():
@@ -26,15 +34,36 @@ class UtilityViewSet(ModelViewSet):
         else:
             return super().get_serializer_class()
 
+    def get_permissions(self):
+        permission_classes = [IsAuthenticated]
+        if self.action in self.permission_map.keys():
+            permission_classes += self.permission_map.get(self.action, [])
+        else:
+            permission_classes += self.default_permissions
+        return [permission() for permission in permission_classes]
+
+    def permission_denied(self, request, message=None, code=None):
+        message = "Vous n'avez pas la permission d'accéder à cette ressource."
+        super().permission_denied(request, message=message, code=code)
+
 
 class ProjectViewset(UtilityViewSet):
     serializer_class = ProjectListSerializer
     serializer_map = {
         'list': ProjectListSerializer,
         'retrieve': ProjectDetailSerializer,
-        'update': ProjectUpdateSerializer,
+        ('update', 'partial_update'): ProjectUpdateSerializer,
         'create': ProjectCreateSerializer,
-        'partial_update': ProjectUpdateSerializer,
+    }
+    permission_map = {
+        'retrieve': [
+            IsProjectContributor
+            | IsAdminAuthenticated
+        ],
+        ('update', 'partial_update', 'destroy'): [
+            IsResourceAuthor
+            | IsAdminAuthenticated
+        ]
     }
 
     def get_queryset(self):
@@ -44,21 +73,6 @@ class ProjectViewset(UtilityViewSet):
         author = self.request.user
         serializer.save(author=author)
 
-    def get_permissions(self):
-        if self.action in ['update', 'partial_update', 'destroy']:
-            self.permission_classes = [
-                (IsAuthenticated & IsResourceAuthor)
-                | IsAdminAuthenticated
-            ]
-        elif self.action in ['retrieve']:
-            self.permission_classes = [
-                (IsAuthenticated & IsProjectContributor)
-                | IsAdminAuthenticated
-            ]
-        else:
-            self.permission_classes = [IsAuthenticated]
-        return [permission() for permission in self.permission_classes]
-
 
 class ContributorViewset(UtilityViewSet):
     serializer_class = ContributorListSerializer
@@ -67,6 +81,18 @@ class ContributorViewset(UtilityViewSet):
         'retrieve': ContributorDetailSerializer,
         'create': ContributorCreateSerializer,
     }
+    permission_map = {
+        'create': [
+            IsProjectAuthor
+            | IsAdminAuthenticated
+        ],
+        'destroy': [
+            IsUserContributor
+            | IsProjectAuthor
+            | IsAdminAuthenticated
+        ]
+    }
+    default_permissions = [IsProjectContributor | IsAdminAuthenticated]
     http_method_names = ['get', 'post', 'delete', 'options', 'head']
 
     def get_queryset(self):
@@ -81,25 +107,6 @@ class ContributorViewset(UtilityViewSet):
         except IntegrityError:
             raise ValidationError({"error": 'Cet utilisateur est déjà contributeur du projet'})
 
-    def get_permissions(self):
-        if self.action == 'create':
-            self.permission_classes = [
-                (IsAuthenticated & IsProjectAuthor)
-                | IsAdminAuthenticated
-            ]
-        elif self.action == 'destroy':
-            self.permission_classes = [
-                (IsAuthenticated & IsUserContributor)
-                | (IsAuthenticated & IsProjectAuthor)
-                | IsAdminAuthenticated
-            ]
-        else:
-            self.permission_classes = [
-                (IsAuthenticated & IsProjectContributor)
-                | IsAdminAuthenticated
-            ]
-        return [permission() for permission in self.permission_classes]
-
 
 class IssueViewset(UtilityViewSet):
     serializer_class = IssueListSerializer
@@ -107,9 +114,20 @@ class IssueViewset(UtilityViewSet):
         'list': IssueListSerializer,
         'retrieve': IssueDetailSerializer,
         'create': IssueCreateSerializer,
-        'partial_update': IssueUpdateSerializer,
-        'update': IssueUpdateSerializer,
+        ('update', 'partial_update'): IssueUpdateSerializer,
     }
+    permission_map = {
+        ('update', 'partial_update'): [
+            IsResourceAuthor
+            | IsAdminAuthenticated
+        ],
+        'destroy': [
+            IsResourceAuthor
+            | IsProjectAuthor
+            | IsAdminAuthenticated
+        ]
+    }
+    default_permissions = [IsProjectContributor | IsAdminAuthenticated]
 
     def get_queryset(self):
         return Issue.objects.filter(project_id=self.kwargs['project_pk'])
@@ -119,24 +137,6 @@ class IssueViewset(UtilityViewSet):
         author = self.request.user
         serializer.save(project=project, author=author)
 
-    def get_permissions(self):
-        if self.action in ['update', 'partial_update']:
-            self.permission_classes = [
-                (IsAuthenticated & IsResourceAuthor)
-                | IsAdminAuthenticated
-            ]
-        elif self.action == 'destroy':
-            self.permission_classes = [
-                (IsAuthenticated & IsResourceAuthor)
-                | (IsAuthenticated & IsProjectAuthor)
-                | IsAdminAuthenticated
-            ]
-        else:
-            self.permission_classes = [
-                (IsAuthenticated & IsProjectContributor)
-            ]
-        return [permission() for permission in self.permission_classes]
-
 
 class CommentViewset(UtilityViewSet):
     serializer_class = CommentListSerializer
@@ -144,9 +144,20 @@ class CommentViewset(UtilityViewSet):
         'list': CommentListSerializer,
         'retrieve': CommentDetailSerializer,
         'create': CommentCreateSerializer,
-        'partial_update': CommentUpdateSerializer,
-        'update': CommentUpdateSerializer,
+        ('update', 'partial_update'): CommentUpdateSerializer,
     }
+    permission_map = {
+        ('update', 'partial_update'): [
+            IsResourceAuthor
+            | IsAdminAuthenticated
+        ],
+        'destroy': [
+            IsResourceAuthor
+            | IsProjectAuthor
+            | IsAdminAuthenticated
+        ],
+    }
+    default_permissions = [IsProjectContributor | IsAdminAuthenticated]
 
     def get_queryset(self):
         return Comment.objects.filter(issue_id=self.kwargs['issue_pk'])
@@ -155,21 +166,3 @@ class CommentViewset(UtilityViewSet):
         issue = Issue.objects.get(pk=self.kwargs['issue_pk'])
         author = self.request.user
         serializer.save(issue=issue, author=author)
-
-    def get_permissions(self):
-        if self.action in ['update', 'partial_update']:
-            self.permission_classes = [
-                (IsAuthenticated & IsResourceAuthor)
-                | IsAdminAuthenticated
-            ]
-        elif self.action == 'destroy':
-            self.permission_classes = [
-                (IsAuthenticated & IsResourceAuthor)
-                | (IsAuthenticated & IsProjectAuthor)
-                | IsAdminAuthenticated
-            ]
-        else:
-            self.permission_classes = [
-                (IsAuthenticated & IsProjectContributor)
-            ]
-        return [permission() for permission in self.permission_classes]
