@@ -37,6 +37,15 @@ class UserViewset(ModelViewSet):
         'list': [IsAuthenticated],
         'create': [IsAdminAuthenticated]
     }
+    view_name_map = {
+        'list': 'User List',
+        'create': 'User Create',
+        'update': 'User Update',
+        'partial_update': 'User Update',
+        'retrieve': 'User Detail',
+        'destroy': 'User Delete',
+    }
+    default_permission = [IsOwner | IsAdminAuthenticated]
 
     def get_queryset(self):
         return User.objects.all()
@@ -58,3 +67,7 @@ class UserViewset(ModelViewSet):
     def permission_denied(self, request, message=None, code=None):
         message = "Vous n'avez pas la permission d'accéder à cette ressource."
         super().permission_denied(request, message=message, code=code)
+
+    def get_view_name(self):
+        action = getattr(self, 'action', None)
+        return self.view_name_map.get(action, super().get_view_name())
