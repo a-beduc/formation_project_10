@@ -3,6 +3,7 @@ from django.db import models
 from django.conf import settings
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from rest_framework.exceptions import ValidationError
 
 
 class Project(models.Model):
@@ -34,11 +35,10 @@ class Contributor(models.Model):
         # unique_together = ('user', 'project'),
         constraints = [models.UniqueConstraint(fields=['user', 'project'], name='unique_contributor')]
 
-
-# @receiver(pre_save, sender=Contributor)
-# def prevent_duplicate_contributor(instance, **kwargs):
-#     if Contributor.objects.filter(user=instance.user, project=instance.project).exists():
-#         raise ValidationError('Cet utilisateur est déjà contributeur de ce projet.')
+    def delete(self, *args, **kwargs):
+        if self.user == self.project.author:
+            raise ValidationError("The author cannot be deleted from the contributors!")
+        super().delete(*args, **kwargs)
 
 
 class Issue(models.Model):
@@ -81,5 +81,5 @@ class Comment(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     author = models.ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     issue = models.ForeignKey(to=Issue, on_delete=models.CASCADE, related_name='comments')
-    description = models.TextField()
+    content = models.TextField()
     time_created = models.DateTimeField(auto_now_add=True)
