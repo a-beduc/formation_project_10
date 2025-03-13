@@ -1,3 +1,5 @@
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
 from rest_framework.serializers import (ModelSerializer,
                                         HyperlinkedIdentityField,
                                         CharField)
@@ -54,6 +56,13 @@ class UserCreateSerializer(ModelSerializer):
             'can_be_contacted',
             'can_data_be_shared',
         ]
+
+    def validate_password(self, password):
+        try:
+            validate_password(password)
+        except ValidationError as e:
+            raise ValidationError(e.messages)
+        return password
 
     def create(self, validated_data):
         plain_password = validated_data.pop('password', None)
