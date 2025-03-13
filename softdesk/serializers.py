@@ -1,6 +1,6 @@
 from rest_framework.serializers import ModelSerializer, HyperlinkedIdentityField, PrimaryKeyRelatedField
 from rest_framework_nested.relations import NestedHyperlinkedIdentityField
-from myauth.serializers import UserListSerializer, UserSummarySerializer
+from myauth.serializers import UserSummarySerializer
 from softdesk.models import Project, Issue, Contributor, Comment
 from myauth.models import User
 
@@ -25,7 +25,7 @@ class ContributorListSerializer(ModelSerializer):
 
 
 class ContributorDetailSerializer(ModelSerializer):
-    user = UserListSerializer(read_only=True)
+    user = UserSummarySerializer(read_only=True)
 
     class Meta:
         model = Contributor
@@ -71,7 +71,7 @@ class ProjectListSerializer(ModelSerializer):
 
 
 class ProjectDetailSerializer(ModelSerializer):
-    author = UserListSerializer(read_only=True)
+    author = UserSummarySerializer(read_only=True)
     link_contributor = HyperlinkedIdentityField(
         view_name='project-contributor-list',
         lookup_field='pk',
@@ -136,13 +136,13 @@ class CommentListSerializer(ModelSerializer):
         fields = [
             'id',
             'author',
-            'description',
+            'content',
             'comment_detail',
         ]
 
 
 class CommentDetailSerializer(ModelSerializer):
-    author = UserListSerializer(read_only=True)
+    author = UserSummarySerializer(read_only=True)
 
     class Meta:
         model = Comment
@@ -150,7 +150,7 @@ class CommentDetailSerializer(ModelSerializer):
             'id',
             'author',
             'issue',
-            'description',
+            'content',
             'time_created',
         ]
 
@@ -160,6 +160,8 @@ class CommentSummarySerializer(ModelSerializer):
         model = Comment
         fields = [
             'id',
+            'content',
+            'author'
         ]
 
 
@@ -167,7 +169,7 @@ class CommentCreateSerializer(ModelSerializer):
     class Meta:
         model = Comment
         fields = [
-            'description',
+            'content',
         ]
 
 
@@ -175,7 +177,7 @@ class CommentUpdateSerializer(ModelSerializer):
     class Meta:
         model = Comment
         fields = [
-            'description'
+            'content'
         ]
 
 
@@ -200,7 +202,7 @@ class IssueListSerializer(ModelSerializer):
 
 
 class IssueDetailSerializer(ModelSerializer):
-    author = UserListSerializer(read_only=True)
+    author = UserSummarySerializer(read_only=True)
     comments = CommentSummarySerializer(many=True, read_only=True)
     link_comment = NestedHyperlinkedIdentityField(
         view_name='issue-comment-list',
