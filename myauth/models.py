@@ -1,7 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from myauth.validators import validate_age
 from django.db import models
-from datetime import date
 
 
 class User(AbstractUser):
