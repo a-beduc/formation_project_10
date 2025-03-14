@@ -1,8 +1,6 @@
 import uuid
 from django.db import models
 from django.conf import settings
-from django.db.models.signals import post_save
-from django.dispatch import receiver
 from rest_framework.exceptions import ValidationError
 
 
@@ -25,12 +23,6 @@ class Project(models.Model):
 
     def __str__(self):
         return f"{self.id} - {self.title}"
-
-
-@receiver(post_save, sender=Project)
-def assign_contributor(instance, **kwargs):
-    contributor = Contributor(user=instance.author, project=instance)
-    contributor.save()
 
 
 class Contributor(models.Model):
