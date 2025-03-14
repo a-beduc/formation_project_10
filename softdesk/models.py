@@ -19,6 +19,10 @@ class Project(models.Model):
     type = models.TextField(choices=ProjectType.choices)
     time_created = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        # Constraint to avoid double posting
+        constraints = [models.UniqueConstraint(fields=['author', 'title'], name='unique_project')]
+
 
 @receiver(post_save, sender=Project)
 def assign_contributor(instance, **kwargs):
@@ -32,7 +36,6 @@ class Contributor(models.Model):
     time_created = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        # unique_together = ('user', 'project'),
         constraints = [models.UniqueConstraint(fields=['user', 'project'], name='unique_contributor')]
 
     def delete(self, *args, **kwargs):
@@ -75,6 +78,10 @@ class Issue(models.Model):
     status = models.TextField(choices=IssueStatus.choices, default='TO_DO')
 
     time_created = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        # Constraint to avoid double posting
+        constraints = [models.UniqueConstraint(fields=['author', 'project', 'title'], name='unique_issue')]
 
 
 class Comment(models.Model):

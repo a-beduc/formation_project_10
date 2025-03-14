@@ -71,7 +71,11 @@ class ProjectViewset(UtilityViewSet):
 
     def perform_create(self, serializer):
         author = self.request.user
-        serializer.save(author=author)
+
+        try:
+            serializer.save(author=author)
+        except IntegrityError:
+            raise ValidationError({'error': f"Vous avez déjà créé un projet avec ce nom."})
 
 
 class ContributorViewset(UtilityViewSet):
@@ -135,7 +139,10 @@ class IssueViewset(UtilityViewSet):
     def perform_create(self, serializer):
         project = Project.objects.get(pk=self.kwargs['project_pk'])
         author = self.request.user
-        serializer.save(project=project, author=author)
+        try:
+            serializer.save(project=project, author=author)
+        except IntegrityError:
+            raise ValidationError({'error': f"Vous avez déjà créé un issue avec ce nom dans ce projet."})
 
 
 class CommentViewset(UtilityViewSet):
