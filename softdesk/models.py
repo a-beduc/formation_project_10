@@ -23,6 +23,9 @@ class Project(models.Model):
         # Constraint to avoid double posting
         constraints = [models.UniqueConstraint(fields=['author', 'title'], name='unique_project')]
 
+    def __str__(self):
+        return f"{self.id} - {self.title}"
+
 
 @receiver(post_save, sender=Project)
 def assign_contributor(instance, **kwargs):
@@ -42,6 +45,9 @@ class Contributor(models.Model):
         if self.user == self.project.author:
             raise ValidationError("The author cannot be deleted from the contributors!")
         super().delete(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.id} : user-{self.user_id} - project-{self.project_id}"
 
 
 class Issue(models.Model):
@@ -83,6 +89,9 @@ class Issue(models.Model):
         # Constraint to avoid double posting
         constraints = [models.UniqueConstraint(fields=['author', 'project', 'title'], name='unique_issue')]
 
+    def __str__(self):
+        return f"{self.id} - {self.title}"
+
 
 class Comment(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -90,3 +99,6 @@ class Comment(models.Model):
     issue = models.ForeignKey(to=Issue, on_delete=models.CASCADE, related_name='comments')
     content = models.TextField()
     time_created = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.id}"
