@@ -4,6 +4,9 @@ from django.db import models
 
 
 class User(AbstractUser):
+    """
+    Basic django User class expanded to add a few custom fields
+    """
     date_of_birth = models.DateField(validators=[validate_age])
     can_be_contacted = models.BooleanField(default=False)
     can_data_be_shared = models.BooleanField(default=False)
