@@ -5,6 +5,9 @@ from rest_framework.exceptions import ValidationError
 
 
 class Project(models.Model):
+    """
+    Model representing a project.
+    """
     class ProjectType(models.TextChoices):
         BACKEND = 'BACKEND', 'Back-end'
         FRONTEND = 'FRONTEND', 'Front-end'
@@ -18,7 +21,9 @@ class Project(models.Model):
     time_created = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        # Constraint to avoid double posting
+        """
+        Constraint to avoid double posting.
+        """
         constraints = [models.UniqueConstraint(fields=['author', 'title'], name='unique_project')]
 
     def __str__(self):
@@ -26,14 +31,23 @@ class Project(models.Model):
 
 
 class Contributor(models.Model):
+    """
+    Model representing a contributor of a project.
+    """
     user = models.ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     project = models.ForeignKey(to=Project, on_delete=models.CASCADE, related_name='contributors')
     time_created = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        """
+        Constraint to avoid adding a user as a contributor's project twice.
+        """
         constraints = [models.UniqueConstraint(fields=['user', 'project'], name='unique_contributor')]
 
     def delete(self, *args, **kwargs):
+        """
+        Block the deletion of a Contributor if the contributor is also the author of the project.
+        """
         if self.user == self.project.author:
             raise ValidationError("The author cannot be deleted from the contributors!")
         super().delete(*args, **kwargs)
@@ -43,6 +57,9 @@ class Contributor(models.Model):
 
 
 class Issue(models.Model):
+    """
+    Model representing an issue of a project.
+    """
     class IssuePriority(models.TextChoices):
         LOW = 'LOW', 'Low'
         MEDIUM = 'MEDIUM', 'Medium'
@@ -78,7 +95,9 @@ class Issue(models.Model):
     time_created = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        # Constraint to avoid double posting
+        """
+        Constraint to avoid double posting.
+        """
         constraints = [models.UniqueConstraint(fields=['author', 'project', 'title'], name='unique_issue')]
 
     def __str__(self):
@@ -86,6 +105,9 @@ class Issue(models.Model):
 
 
 class Comment(models.Model):
+    """
+    Model representing a comment of an issue.
+    """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     author = models.ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     issue = models.ForeignKey(to=Issue, on_delete=models.CASCADE, related_name='comments')

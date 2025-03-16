@@ -6,6 +6,9 @@ from myauth.models import User
 
 
 class ContributorListSerializer(ModelSerializer):
+    """
+    Serializer for the Contributor model. Minimal info + a link to the detailed view.
+    """
     user = UserSummarySerializer(read_only=True)
     contributor_detail = NestedHyperlinkedIdentityField(
         view_name='project-contributor-detail',
@@ -19,12 +22,14 @@ class ContributorListSerializer(ModelSerializer):
         fields = [
             'id',
             'user',
-            'project',
             'contributor_detail',
         ]
 
 
 class ContributorDetailSerializer(ModelSerializer):
+    """
+    Serializer for the Contributor model. Detailed view of a Contributor.
+    """
     user = UserSummarySerializer(read_only=True)
 
     class Meta:
@@ -38,6 +43,9 @@ class ContributorDetailSerializer(ModelSerializer):
 
 
 class ContributorSummarySerializer(ModelSerializer):
+    """
+    Serializer for the Contributor model. Minimal information, to display a list of the contributors name.
+    """
     user = UserSummarySerializer(read_only=True)
 
     class Meta:
@@ -48,7 +56,9 @@ class ContributorSummarySerializer(ModelSerializer):
 
 
 class ContributorCreateSerializer(ModelSerializer):
-
+    """
+    Serializer for the Contributor model. Serializer for creating a new Contributor.
+    """
     class Meta:
         model = Contributor
         fields = [
@@ -57,6 +67,9 @@ class ContributorCreateSerializer(ModelSerializer):
 
 
 class ProjectListSerializer(ModelSerializer):
+    """
+    Serializer for the Project model. Minimal info + a link to the detailed view.
+    """
     author = UserSummarySerializer(read_only=True)
     project_detail = HyperlinkedIdentityField(view_name='project-detail', lookup_field='pk')
 
@@ -71,6 +84,10 @@ class ProjectListSerializer(ModelSerializer):
 
 
 class ProjectDetailSerializer(ModelSerializer):
+    """
+    Serializer for the Project model. Detailed view of a Project.
+    It generates two links to the Project's Contributors endpoint and Project's Issues endpoint.
+    """
     author = UserSummarySerializer(read_only=True)
     link_contributor = HyperlinkedIdentityField(
         view_name='project-contributor-list',
@@ -102,6 +119,9 @@ class ProjectDetailSerializer(ModelSerializer):
 
 
 class ProjectCreateSerializer(ModelSerializer):
+    """
+    Serializer for the Project model. Serializer for creating a new Project.
+    """
     class Meta:
         model = Project
         fields = [
@@ -112,6 +132,9 @@ class ProjectCreateSerializer(ModelSerializer):
 
 
 class ProjectUpdateSerializer(ModelSerializer):
+    """
+    Serializer for the Project model. Serializer for updating a new Project.
+    """
     class Meta:
         model = Project
         fields = [
@@ -122,6 +145,9 @@ class ProjectUpdateSerializer(ModelSerializer):
 
 
 class CommentListSerializer(ModelSerializer):
+    """
+    Serializer for the Comment model. Minimal info + a link to the detailed view.
+    """
     author = UserSummarySerializer(read_only=True)
     comment_detail = NestedHyperlinkedIdentityField(
         view_name='issue-comment-detail',
@@ -142,6 +168,9 @@ class CommentListSerializer(ModelSerializer):
 
 
 class CommentDetailSerializer(ModelSerializer):
+    """
+    Serializer for the Comment model. Detailed view of a Comment.
+    """
     author = UserSummarySerializer(read_only=True)
 
     class Meta:
@@ -156,6 +185,9 @@ class CommentDetailSerializer(ModelSerializer):
 
 
 class CommentSummarySerializer(ModelSerializer):
+    """
+    Serializer for the Comment model. Minimal information, to be displayed in a list of comments.
+    """
     class Meta:
         model = Comment
         fields = [
@@ -166,6 +198,9 @@ class CommentSummarySerializer(ModelSerializer):
 
 
 class CommentCreateSerializer(ModelSerializer):
+    """
+    Serializer for the Comment model. Serializer for creating a new Comment.
+    """
     class Meta:
         model = Comment
         fields = [
@@ -174,6 +209,9 @@ class CommentCreateSerializer(ModelSerializer):
 
 
 class CommentUpdateSerializer(ModelSerializer):
+    """
+    Serializer for the Comment model. Serializer for updating a Comment.
+    """
     class Meta:
         model = Comment
         fields = [
@@ -182,6 +220,9 @@ class CommentUpdateSerializer(ModelSerializer):
 
 
 class IssueListSerializer(ModelSerializer):
+    """
+    Serializer for the Issue model. Minimal info + a link to the detailed view.
+    """
     author = UserSummarySerializer(read_only=True)
     issue_detail = NestedHyperlinkedIdentityField(
         view_name='project-issue-detail',
@@ -202,6 +243,10 @@ class IssueListSerializer(ModelSerializer):
 
 
 class IssueDetailSerializer(ModelSerializer):
+    """
+    Serializer for the Issue model. Detailed view of an issue.
+    It generates a link to the Issue's Comments endpoint.
+    """
     author = UserSummarySerializer(read_only=True)
     comments = CommentSummarySerializer(many=True, read_only=True)
     link_comment = NestedHyperlinkedIdentityField(
@@ -232,6 +277,9 @@ class IssueDetailSerializer(ModelSerializer):
 
 
 class IssueCreateSerializer(ModelSerializer):
+    """
+    Serializer for the Issue model. Serializer for creating a new issue.
+    """
     to_user = PrimaryKeyRelatedField(
         queryset=User.objects.none(),
         allow_null=True,
@@ -249,6 +297,10 @@ class IssueCreateSerializer(ModelSerializer):
         ]
 
     def __init__(self, *args, **kwargs):
+        """
+        Look for a project's contributors and give the list to the "to_user" field to limit the choices of designated
+        users to the contributors of the project only.
+        """
         super().__init__(*args, **kwargs)
         project_pk = self.context['view'].kwargs['project_pk']
         self.fields["to_user"].queryset = User.objects.filter(
@@ -257,6 +309,9 @@ class IssueCreateSerializer(ModelSerializer):
 
 
 class IssueUpdateSerializer(ModelSerializer):
+    """
+    Serializer for the Issue model. Serializer for updating an issue.
+    """
     to_user = PrimaryKeyRelatedField(
         queryset=User.objects.none(),
         allow_null=True,
@@ -274,6 +329,10 @@ class IssueUpdateSerializer(ModelSerializer):
         ]
 
     def __init__(self, *args, **kwargs):
+        """
+        Look for a project's contributors and give the list to the "to_user" field to limit the choices of designated
+        users to the contributors of the project only.
+        """
         super().__init__(*args, **kwargs)
         project_pk = self.context['view'].kwargs['project_pk']
         self.fields["to_user"].queryset = User.objects.filter(

@@ -22,15 +22,15 @@ class UserViewset(ModelViewSet):
 
     - Allows users to access and edit their own profiles.
     - Allows staff or superusers to manage all user records.
-    - Provides basic filtering to search for user IDs or usernames.
+    - Provides basic filtering to search for a specific user.
 
     An example of usage:
 
     - To retrieve a list of all users: GET /api/v1/users/
     - To create a new user (Admin only): POST /api/v1/users/
-    - For a specific user: GET /api/v1/users/<pk>/
-    - To update a user (partial or full): PATCH or PUT /api/v1/users/<pk>/
-    - To delete a user: DELETE /api/v1/users/<pk>/
+    - For a specific user: GET /api/v1/users/<pk\>/
+    - To update a user (partial or full): PATCH or PUT /api/v1/users/<pk\>/
+    - To delete a user: DELETE /api/v1/users/<pk\>/
 
     If you want to see the list of all the projects, please refer to the [projects endpoint](/api/v1/projects/).
     """
