@@ -137,7 +137,10 @@ class ProjectViewset(UtilityViewSet):
     }
 
     def get_queryset(self):
-        return Project.objects.all()
+        return (Project.objects.all()
+                .select_related("author")
+                .prefetch_related("contributors__user")
+                )
 
     def perform_create(self, serializer):
         """
@@ -196,7 +199,10 @@ class ContributorViewset(UtilityViewSet):
     http_method_names = ['get', 'post', 'delete', 'options', 'head']
 
     def get_queryset(self):
-        return Contributor.objects.filter(project_id=self.kwargs['project_pk'])
+        return (Contributor.objects
+                .filter(project_id=self.kwargs['project_pk'])
+                .select_related('user')
+                .select_related('project'))
 
     def perform_create(self, serializer):
         """
@@ -260,7 +266,11 @@ class IssueViewset(UtilityViewSet):
     default_permissions = [IsProjectContributor | IsAdminAuthenticated]
 
     def get_queryset(self):
-        return Issue.objects.filter(project_id=self.kwargs['project_pk'])
+        return (Issue.objects
+                .filter(project_id=self.kwargs['project_pk'])
+                .select_related("author")
+                .select_related('project')
+                .prefetch_related("comments__author"))
 
     def perform_create(self, serializer):
         """
@@ -323,7 +333,12 @@ class CommentViewset(UtilityViewSet):
     default_permissions = [IsProjectContributor | IsAdminAuthenticated]
 
     def get_queryset(self):
-        return Comment.objects.filter(issue_id=self.kwargs['issue_pk'])
+        return (Comment.objects
+                .filter(issue_id=self.kwargs['issue_pk'])
+                .select_related('author')
+                .select_related('issue')
+                .select_related('issue__project')
+                )
 
     def perform_create(self, serializer):
         """
