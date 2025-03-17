@@ -1,4 +1,5 @@
 from django.db import IntegrityError
+from django.shortcuts import get_object_or_404
 
 from rest_framework.exceptions import ValidationError
 from rest_framework.viewsets import ModelViewSet
@@ -25,6 +26,8 @@ class UtilityViewSet(ModelViewSet):
     serializer_map = {}
     permission_map = {}
     default_permissions = []
+    _project_cache = None
+    _project_contributors_id_cache = None
 
     def __init_subclass__(cls, **kwargs):
         """
@@ -63,6 +66,29 @@ class UtilityViewSet(ModelViewSet):
         """
         message = "Vous n'avez pas la permission d'accéder à cette ressource."
         super().permission_denied(request, message=message, code=code)
+
+    @property
+    def current_project(self):
+        """
+        Property to cache a Project.
+        It is used by the permissions which need to verify elements of the project instance.
+        """
+        if self._project_cache is None:
+            pk = self.kwargs.get('project_pk') or self.kwargs.get('pk')
+            self._project_cache = get_object_or_404(Project, pk=pk)
+        return self._project_cache
+
+    @property
+    def current_project_contributors_id(self):
+        """
+        Property to cache contributors users id in a set.
+        It is used by the permissions which need to verify if a user is part of the contributors for a project
+        instance without the need for multiple database lookup.
+        """
+        if self._project_contributors_id_cache is None:
+            contributors = self.current_project.contributors.all()
+            self._project_contributors_id_cache = {contributor.user_id for contributor in contributors}
+        return self._project_contributors_id_cache
 
 
 class ProjectViewset(UtilityViewSet):

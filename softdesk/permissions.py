@@ -1,4 +1,3 @@
-from softdesk.models import Contributor, Project
 from rest_framework.permissions import BasePermission
 
 
@@ -16,33 +15,10 @@ class IsProjectAuthor(BasePermission):
     """
     def has_permission(self, request, view):
         """
-        Check the dict found in view.kwargs to get the project ID and with a query verify if the user is also the
-        author of the project.
+        Check the current_project property and verify if the user is also the author of the project.
         Used for list view, where resource <pk> is not needed.
         """
-        if 'project_pk' in view.kwargs.keys():
-            project_pk = view.kwargs.get('project_pk')
-        else:
-            project_pk = view.kwargs.get('pk')
-        if not project_pk:
-            return False
-        project = Project.objects.get(pk=project_pk)
-        return project.author == request.user
-
-    def has_object_permission(self, request, view, obj):
-        """
-        Check the dict found in view.kwargs to get the project ID and with a query verify if the user is also the
-        author of the project.
-        Used in detail view, where resource <pk> is needed.
-        """
-        if 'project_pk' in view.kwargs.keys():
-            project_pk = view.kwargs.get('project_pk')
-        else:
-            project_pk = view.kwargs.get('pk')
-        if not project_pk:
-            return False
-        project = Project.objects.get(pk=project_pk)
-        return project.author == request.user
+        return view.current_project.author == request.user
 
 
 class IsProjectContributor(BasePermission):
@@ -51,31 +27,10 @@ class IsProjectContributor(BasePermission):
     """
     def has_permission(self, request, view):
         """
-        Check the dict found in view.kwargs to get the project ID and with a query verify if the user is also the
-        author of the project.
+        Check current_project_contributors_id property verify if the user is also a contributor of the project.
         Used for list view, where resource <pk> is not needed.
         """
-        if 'project_pk' in view.kwargs.keys():
-            project_pk = view.kwargs.get('project_pk')
-        else:
-            project_pk = view.kwargs.get('pk')
-        if not project_pk:
-            return False
-        return Contributor.objects.filter(project_id=project_pk, user=request.user).exists()
-
-    def has_object_permission(self, request, view, obj):
-        """
-        Check the dict found in view.kwargs to get the project ID and with a query verify if the user is also the
-        author of the project.
-        Used in detail view, where resource <pk> is needed.
-        """
-        if 'project_pk' in view.kwargs.keys():
-            project_pk = view.kwargs.get('project_pk')
-        else:
-            project_pk = view.kwargs.get('pk')
-        if not project_pk:
-            return False
-        return Contributor.objects.filter(project_id=project_pk, user=request.user).exists()
+        return request.user.id in view.current_project_contributors_id
 
 
 class IsUserContributor(BasePermission):
