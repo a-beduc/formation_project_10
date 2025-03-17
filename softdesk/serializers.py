@@ -71,7 +71,7 @@ class ProjectListSerializer(ModelSerializer):
     Serializer for the Project model. Minimal info + a link to the detailed view.
     """
     author = UserSummarySerializer(read_only=True)
-    project_detail = HyperlinkedIdentityField(view_name='project-detail', lookup_field='pk')
+    project_detail = HyperlinkedIdentityField(view_name='project-detail')
 
     class Meta:
         model = Project
@@ -91,14 +91,12 @@ class ProjectDetailSerializer(ModelSerializer):
     author = UserSummarySerializer(read_only=True)
     link_contributor = HyperlinkedIdentityField(
         view_name='project-contributor-list',
-        lookup_field='pk',
         lookup_url_kwarg='project_pk',
         read_only=True
     )
     contributors = ContributorSummarySerializer(many=True, read_only=True)
     link_issue = HyperlinkedIdentityField(
         view_name='project-issue-list',
-        lookup_field='pk',
         lookup_url_kwarg='project_pk',
         read_only=True
     )
