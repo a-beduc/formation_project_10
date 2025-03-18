@@ -28,15 +28,30 @@ class UtilityViewSet(ModelViewSet):
     default_permissions = []
     _project_cache = None
     _project_contributors_id_cache = None
+    stripped_class_name = ""
+    view_name_map = {}
 
     def __init_subclass__(cls, **kwargs):
         """
         This method is overwritten after initialization in children classes to transform tuple keys in serializer_map
         and permission_map into proper keys with similar values.
+        It also creates a map for view_name based on cls.__name__, it is used to dynamically modify name displayed by
+        DRF web interface.
         """
         super().__init_subclass__(**kwargs)
         cls.serializer_map = utils.flatten_tuple_of_keys(cls.serializer_map)
         cls.permission_map = utils.flatten_tuple_of_keys(cls.permission_map)
+
+        if 'ViewSet' in cls.__name__:
+            cls.stripped_class_name = cls.__name__.replace('ViewSet', '')
+            cls.view_name_map = {
+                'list': f'{cls.stripped_class_name} List',
+                'create': f'{cls.stripped_class_name} Create',
+                'update': f'{cls.stripped_class_name} Update',
+                'partial_update': f'{cls.stripped_class_name} Update',
+                'retrieve': f'{cls.stripped_class_name} Detail',
+                'destroy': f'{cls.stripped_class_name} Delete',
+            }
 
     def get_serializer_class(self):
         """
@@ -90,8 +105,15 @@ class UtilityViewSet(ModelViewSet):
             self._project_contributors_id_cache = {contributor.user_id for contributor in contributors}
         return self._project_contributors_id_cache
 
+    def get_view_name(self):
+        """
+        Modify displayed name of view on DRF web interface.
+        """
+        action = getattr(self, 'action', None)
+        return self.view_name_map.get(action, super().get_view_name())
 
-class ProjectViewset(UtilityViewSet):
+
+class ProjectViewSet(UtilityViewSet):
     """
     The SoftDesk API is a RESTful API built using Django Rest Framework with the objective
     to develop a secured and efficient backend interface to serve different front-end applications.
@@ -155,7 +177,7 @@ class ProjectViewset(UtilityViewSet):
             raise ValidationError({'error': f"Vous avez déjà créé un projet avec ce nom."})
 
 
-class ContributorViewset(UtilityViewSet):
+class ContributorViewSet(UtilityViewSet):
     """
     The SoftDesk API is a RESTful API built using Django Rest Framework with the objective
     to develop a secured and efficient backend interface to serve different front-end applications.
@@ -219,7 +241,7 @@ class ContributorViewset(UtilityViewSet):
             raise ValidationError({"error": 'Cet utilisateur est déjà contributeur du projet'})
 
 
-class IssueViewset(UtilityViewSet):
+class IssueViewSet(UtilityViewSet):
     """
     The SoftDesk API is a RESTful API built using Django Rest Framework with the objective
     to develop a secured and efficient backend interface to serve different front-end applications.
@@ -286,7 +308,7 @@ class IssueViewset(UtilityViewSet):
             raise ValidationError({'error': f"Vous avez déjà créé un issue avec ce nom dans ce projet."})
 
 
-class CommentViewset(UtilityViewSet):
+class CommentViewSet(UtilityViewSet):
     """
     The SoftDesk API is a RESTful API built using Django Rest Framework with the objective
     to develop a secured and efficient backend interface to serve different front-end applications.

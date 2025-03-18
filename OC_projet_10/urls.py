@@ -3,21 +3,21 @@ from django.urls import path, include
 from rest_framework_nested import routers
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from myauth.views import UserViewset
-from softdesk.views import ProjectViewset, ContributorViewset, IssueViewset, CommentViewset
+from myauth.views import UserViewSet
+from softdesk.views import ProjectViewSet, ContributorViewSet, IssueViewSet, CommentViewSet
 
 
 router = routers.DefaultRouter()
 
-router.register(r'users', UserViewset, basename='user')
-router.register(r'projects', ProjectViewset, basename='project')
+router.register(r'users', UserViewSet, basename='user')
+router.register(r'projects', ProjectViewSet, basename='project')
 
 projects_router = routers.NestedDefaultRouter(router, r'projects', lookup='project')
-projects_router.register(r'contributors', ContributorViewset, basename='project-contributor')
-projects_router.register(r'issues', IssueViewset, basename='project-issue')
+projects_router.register(r'contributors', ContributorViewSet, basename='project-contributor')
+projects_router.register(r'issues', IssueViewSet, basename='project-issue')
 
 issues_router = routers.NestedDefaultRouter(projects_router, r'issues', lookup='issue')
-issues_router.register(r'comments', CommentViewset, basename='issue-comment')
+issues_router.register(r'comments', CommentViewSet, basename='issue-comment')
 
 
 urlpatterns = [
