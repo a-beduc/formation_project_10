@@ -1,6 +1,8 @@
 from django.db import IntegrityError
 from django.shortcuts import get_object_or_404
 
+from django_filters import rest_framework as filters
+
 from rest_framework.exceptions import ValidationError
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated
@@ -14,6 +16,7 @@ from softdesk.serializers import (
 )
 from softdesk.permissions import IsProjectAuthor, IsProjectContributor, IsResourceAuthor, IsUserContributor
 from myauth.permissions import IsAdminAuthenticated
+from softdesk.filters import ProjectFilterSet, IssueFilterSet, ContributorFilterSet, CommentFilterSet
 
 from softdesk.utils import utils
 
@@ -30,6 +33,8 @@ class UtilityViewSet(ModelViewSet):
     _project_contributors_id_cache = None
     stripped_class_name = ""
     view_name_map = {}
+    filter_backends = [filters.DjangoFilterBackend]
+    filterset_class = None
 
     def __init_subclass__(cls, **kwargs):
         """
@@ -157,12 +162,13 @@ class ProjectViewSet(UtilityViewSet):
             | IsAdminAuthenticated
         ]
     }
+    filterset_class = ProjectFilterSet
 
     def get_queryset(self):
         return (Project.objects.all()
                 .select_related("author")
                 .prefetch_related("contributors__user")
-                )
+                ).order_by('time_created')
 
     def perform_create(self, serializer):
         """
@@ -219,12 +225,13 @@ class ContributorViewSet(UtilityViewSet):
     }
     default_permissions = [IsProjectContributor | IsAdminAuthenticated]
     http_method_names = ['get', 'post', 'delete', 'options', 'head']
+    filterset_class = ContributorFilterSet
 
     def get_queryset(self):
         return (Contributor.objects
                 .filter(project_id=self.kwargs['project_pk'])
                 .select_related('user')
-                .select_related('project'))
+                .select_related('project')).order_by('time_created')
 
     def perform_create(self, serializer):
         """
@@ -286,13 +293,14 @@ class IssueViewSet(UtilityViewSet):
         ]
     }
     default_permissions = [IsProjectContributor | IsAdminAuthenticated]
+    filterset_class = IssueFilterSet
 
     def get_queryset(self):
         return (Issue.objects
                 .filter(project_id=self.kwargs['project_pk'])
                 .select_related("author")
                 .select_related('project')
-                .prefetch_related("comments__author"))
+                .prefetch_related("comments__author")).order_by('time_created')
 
     def perform_create(self, serializer):
         """
@@ -353,6 +361,7 @@ class CommentViewSet(UtilityViewSet):
         ],
     }
     default_permissions = [IsProjectContributor | IsAdminAuthenticated]
+    filterset_class = CommentFilterSet
 
     def get_queryset(self):
         return (Comment.objects
@@ -360,7 +369,7 @@ class CommentViewSet(UtilityViewSet):
                 .select_related('author')
                 .select_related('issue')
                 .select_related('issue__project')
-                )
+                ).order_by('time_created')
 
     def perform_create(self, serializer):
         """
