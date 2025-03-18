@@ -1,5 +1,6 @@
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated
+from django_filters import rest_framework as filters
 
 from django.contrib.auth import get_user_model
 from myauth.serializers import (UserListSerializer,
@@ -8,11 +9,13 @@ from myauth.serializers import (UserListSerializer,
                                 UserUpdateSerializer)
 
 from myauth.permissions import IsAdminAuthenticated, IsOwner
+from myauth.filters import UserFilter
+
 
 User = get_user_model()
 
 
-class UserViewset(ModelViewSet):
+class UserViewSet(ModelViewSet):
     """
     The SoftDesk API is a RESTful API built using Django Rest Framework with the objective
     to develop a secured and efficient backend interface to serve different front-end applications.
@@ -60,6 +63,8 @@ class UserViewset(ModelViewSet):
         'retrieve': 'User Detail',
         'destroy': 'User Delete',
     }
+    filter_backends = [filters.DjangoFilterBackend]
+    filterset_class = UserFilter
 
     def get_queryset(self):
         return User.objects.all()
