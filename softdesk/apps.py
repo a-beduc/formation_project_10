@@ -6,4 +6,8 @@ class SoftdeskConfig(AppConfig):
     name = 'softdesk'
 
     def ready(self):
+        # Do not delete : implicitly connect signal handlers decorated
+        # with @receiver.
+        # See Django docs:
+        # https://docs.djangoproject.com/en/5.1/topics/signals/#connecting-receiver-functions
         import softdesk.signals

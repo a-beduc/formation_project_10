@@ -3,10 +3,12 @@ from rest_framework.permissions import IsAuthenticated
 from django_filters import rest_framework as filters
 
 from django.contrib.auth import get_user_model
-from myauth.serializers import (UserListSerializer,
-                                UserDetailSerializer,
-                                UserCreateSerializer,
-                                UserUpdateSerializer)
+from myauth.serializers import (
+    UserListSerializer,
+    UserDetailSerializer,
+    UserCreateSerializer,
+    UserUpdateSerializer
+)
 
 from myauth.permissions import IsAdminAuthenticated, IsOwner
 from myauth.filters import UserFilter
@@ -17,9 +19,10 @@ User = get_user_model()
 
 class UserViewSet(ModelViewSet):
     """
-    The SoftDesk API is a RESTful API built using Django Rest Framework with the objective
-    to develop a secured and efficient backend interface to serve different front-end applications.
-    The API uses Json Web Token to define access permissions for the resources.
+    The SoftDesk API is a RESTful API built using Django Rest Framework
+    in order to develop a secured and efficient backend interface to
+    serve different front-end applications. The API uses Json Web Token
+    to define access permissions for the resources.
 
     The User resource:
 
@@ -31,11 +34,12 @@ class UserViewSet(ModelViewSet):
 
     - To retrieve a list of all users: GET /api/v1/users/
     - To create a new user (Admin only): POST /api/v1/users/
-    - For a specific user: GET /api/v1/users/<pk\>/
-    - To update a user (partial or full): PATCH or PUT /api/v1/users/<pk\>/
-    - To delete a user: DELETE /api/v1/users/<pk\>/
+    - For a specific user: GET /api/v1/users/{{pk}}>/
+    - To update a user (partial or full): PATCH or PUT /api/v1/users/{{pk}}>/
+    - To delete a user: DELETE /api/v1/users/{{pk}}>/
 
-    If you want to see the list of all the projects, please refer to the [projects endpoint](/api/v1/projects/).
+    If you want to see the list of all the projects, please refer to the
+    [projects endpoint](/api/v1/projects/).
     """
     # Serializers
     serializer_class = UserListSerializer
@@ -71,9 +75,9 @@ class UserViewSet(ModelViewSet):
 
     def get_serializer_class(self):
         """
-        Check for the action performed and if a serializer correspond to the action in serializer_map, return it.
+        Check for the action performed and if a serializer correspond to
+        the action in serializer_map, return it.
         Otherwise, return a default serializer.
-        :return:
         """
         if self.action in self.serializer_map.keys():
             return self.serializer_map[self.action]
@@ -82,8 +86,9 @@ class UserViewSet(ModelViewSet):
 
     def get_permissions(self):
         """
-        Return a list of permissions that this view requires. Every resources endpoint need at least the
-        [IsAuthenticated] permission.
+        Return a list of permissions that this view requires.
+        Every resources endpoint need at least the [IsAuthenticated]
+        permission.
         """
         permission_classes = [IsAuthenticated]
         if self.action in self.permission_map.keys():

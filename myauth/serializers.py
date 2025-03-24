@@ -8,7 +8,8 @@ from myauth.models import User
 
 class UserDetailSerializer(ModelSerializer):
     """
-    Serializer for the User model. Detailed view of a User, including all major fields.
+    Serializer for the User model. Detailed view of a User, including
+    all major fields.
     """
     class Meta:
         model = User
@@ -24,9 +25,13 @@ class UserDetailSerializer(ModelSerializer):
 
 class UserListSerializer(ModelSerializer):
     """
-    Serializer for the User model. Minimal user info + a link to the detailed view.
+    Serializer for the User model. Minimal user info + a link to the
+    detailed view.
     """
-    user_detail = HyperlinkedIdentityField(view_name='user-detail', lookup_field='pk')
+    user_detail = HyperlinkedIdentityField(
+        view_name='user-detail',
+        lookup_field='pk'
+    )
 
     class Meta:
         model = User
@@ -39,7 +44,8 @@ class UserListSerializer(ModelSerializer):
 
 class UserSummarySerializer(ModelSerializer):
     """
-    Serializer for the User model. A short representation of the user (id + username).
+    Serializer for the User model. A short representation of the user
+    (id + username).
     """
     class Meta:
         model = User
@@ -51,8 +57,8 @@ class UserSummarySerializer(ModelSerializer):
 
 class UserCreateSerializer(ModelSerializer):
     """
-    Serializer for the User model. Serializer for creating a new User with password validation that respect Django
-    auth validators.
+    Serializer for the User model. Serializer for creating a new User
+    with password validation that respect Django auth validators.
     """
     password = CharField(
         write_only=True,
@@ -72,7 +78,8 @@ class UserCreateSerializer(ModelSerializer):
 
     def validate_password(self, password):
         """
-        Method to check Django's password constraints and raise a DRF ValidationError if not valid.
+        Method to check Django's password constraints and raise a DRF
+        ValidationError if not valid.
         """
         try:
             validate_password(password)
@@ -82,7 +89,8 @@ class UserCreateSerializer(ModelSerializer):
 
     def create(self, validated_data):
         """
-        Method called when a user is created, hash the password before saving it in the database.
+        Method called when a user is created, hash the password before
+        saving it in the database.
         """
         plain_password = validated_data.pop('password', None)
         user = super(UserCreateSerializer, self).create(validated_data)
@@ -93,7 +101,8 @@ class UserCreateSerializer(ModelSerializer):
 
 class UserUpdateSerializer(ModelSerializer):
     """
-    Serializer for the User model. Serializer for updating an existing User.
+    Serializer for the User model. Serializer for updating an existing
+    User.
     """
     password = CharField(
         write_only=True,
@@ -113,11 +122,13 @@ class UserUpdateSerializer(ModelSerializer):
 
     def update(self, instance, validated_data):
         """
-        Method called when a user's data are updated, if the password is modified, hash the password before saving
-        it in the database.
+        Method called when a user's data are updated, if the password is
+        modified, hash the password before saving it in the database.
         """
         plain_password = validated_data.pop('password', None)
-        user = super(UserUpdateSerializer, self).update(instance, validated_data)
+        user = super(UserUpdateSerializer, self).update(
+            instance, validated_data
+        )
         if plain_password:
             user.set_password(plain_password)
             user.save()

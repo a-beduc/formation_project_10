@@ -26,7 +26,8 @@ class IssueAdmin(admin.ModelAdmin):
     """
     Custom admin configuration for the Issue model.
     """
-    list_display = ('id', 'author', 'project', 'title', 'status', 'priority', 'type')
+    list_display = ('id', 'author', 'project', 'title', 'status',
+                    'priority', 'type')
     list_filter = ('status', 'priority', 'type')
     search_fields = ('author', 'project', 'title')
 

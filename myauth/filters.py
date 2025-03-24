@@ -13,4 +13,8 @@ class UserFilter(filters.FilterSet):
 
     class Meta:
         model = User
-        fields = ['user_id', 'username', 'username_contains']
+        fields = [
+            'user_id',
+            'username',
+            'username_contains'
+        ]

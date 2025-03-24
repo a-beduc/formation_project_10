@@ -9,22 +9,32 @@ from rest_framework.permissions import IsAuthenticated
 
 from softdesk.models import Project, Contributor, Issue, Comment
 from softdesk.serializers import (
-    ProjectListSerializer, ProjectDetailSerializer, ProjectCreateSerializer, ProjectUpdateSerializer,
-    ContributorListSerializer, ContributorDetailSerializer, ContributorCreateSerializer,
-    IssueListSerializer, IssueDetailSerializer, IssueCreateSerializer, IssueUpdateSerializer,
-    CommentListSerializer, CommentDetailSerializer, CommentCreateSerializer, CommentUpdateSerializer
+    ProjectListSerializer, ProjectDetailSerializer, ProjectCreateSerializer,
+    ProjectUpdateSerializer,
+    ContributorListSerializer, ContributorDetailSerializer,
+    ContributorCreateSerializer,
+    IssueListSerializer, IssueDetailSerializer, IssueCreateSerializer,
+    IssueUpdateSerializer,
+    CommentListSerializer, CommentDetailSerializer, CommentCreateSerializer,
+    CommentUpdateSerializer
 )
-from softdesk.permissions import IsProjectAuthor, IsProjectContributor, IsResourceAuthor, IsUserContributor
+from softdesk.permissions import (
+    IsProjectAuthor, IsProjectContributor, IsResourceAuthor, IsUserContributor
+)
 from myauth.permissions import IsAdminAuthenticated
-from softdesk.filters import ProjectFilterSet, IssueFilterSet, ContributorFilterSet, CommentFilterSet
+from softdesk.filters import (
+    ProjectFilterSet, IssueFilterSet, ContributorFilterSet, CommentFilterSet
+)
 
 from softdesk.utils import utils
 
 
 class UtilityViewSet(ModelViewSet):
     """
-    This class is inherited by the classes that represent our API resources endpoints.
-    The serializer_map, permission_map and eventually default_permissions must be implemented in children classes.
+    This class is inherited by the classes that represent our API
+    resources endpoints. The serializer_map, permission_map and
+    eventually default_permissions must be implemented in children
+    classes.
     """
     serializer_map = {}
     permission_map = {}
@@ -38,10 +48,12 @@ class UtilityViewSet(ModelViewSet):
 
     def __init_subclass__(cls, **kwargs):
         """
-        This method is overwritten after initialization in children classes to transform tuple keys in serializer_map
-        and permission_map into proper keys with similar values.
-        It also creates a map for view_name based on cls.__name__, it is used to dynamically modify name displayed by
-        DRF web interface.
+        This method is overwritten after initialization in children
+        classes to transform tuple keys in serializer_map and
+        permission_map into proper keys with similar values.
+        It also creates a map for view_name based on cls.__name__,
+        it is used to dynamically modify name displayed by DRF web
+        interface.
         """
         super().__init_subclass__(**kwargs)
         cls.serializer_map = utils.flatten_tuple_of_keys(cls.serializer_map)
@@ -60,8 +72,9 @@ class UtilityViewSet(ModelViewSet):
 
     def get_serializer_class(self):
         """
-        Check for the action performed and if a serializer correspond to the action in serializer_map, return it.
-        Otherwise, return a default serializer.
+        Check for the action performed and if a serializer correspond to
+        the action in serializer_map, return it. Otherwise, return a
+        default serializer.
         """
         if self.action in self.serializer_map.keys():
             return self.serializer_map[self.action]
@@ -70,8 +83,9 @@ class UtilityViewSet(ModelViewSet):
 
     def get_permissions(self):
         """
-        Return a list of permissions that this view requires. Every resources endpoint need at least the
-        [IsAuthenticated] permission.
+        Return a list of permissions that this view requires. Every
+        resources endpoint need at least the [IsAuthenticated]
+        permission.
         """
         permission_classes = [IsAuthenticated]
         if self.action in self.permission_map.keys():
@@ -82,7 +96,8 @@ class UtilityViewSet(ModelViewSet):
 
     def permission_denied(self, request, message=None, code=None):
         """
-        Display a custom message when you don't have the required authorization to reach a resource endpoint.
+        Display a custom message when you don't have the required
+        authorization to reach a resource endpoint.
         """
         message = "Vous n'avez pas la permission d'accéder à cette ressource."
         super().permission_denied(request, message=message, code=code)
@@ -90,8 +105,8 @@ class UtilityViewSet(ModelViewSet):
     @property
     def current_project(self):
         """
-        Property to cache a Project.
-        It is used by the permissions which need to verify elements of the project instance.
+        Property to cache a Project. It is used by the permissions which
+        need to verify elements of the project instance.
         """
         if self._project_cache is None:
             pk = self.kwargs.get('project_pk') or self.kwargs.get('pk')
@@ -102,12 +117,15 @@ class UtilityViewSet(ModelViewSet):
     def current_project_contributors_id(self):
         """
         Property to cache contributors users id in a set.
-        It is used by the permissions which need to verify if a user is part of the contributors for a project
-        instance without the need for multiple database lookup.
+        It is used by the permissions which need to verify if a user is
+        part of the contributors for a project instance without the need
+        for multiple database lookup.
         """
         if self._project_contributors_id_cache is None:
             contributors = self.current_project.contributors.all()
-            self._project_contributors_id_cache = {contributor.user_id for contributor in contributors}
+            self._project_contributors_id_cache = {
+                contributor.user_id for contributor in contributors
+            }
         return self._project_contributors_id_cache
 
     def get_view_name(self):
@@ -120,13 +138,15 @@ class UtilityViewSet(ModelViewSet):
 
 class ProjectViewSet(UtilityViewSet):
     """
-    The SoftDesk API is a RESTful API built using Django Rest Framework with the objective
-    to develop a secured and efficient backend interface to serve different front-end applications.
-    The API uses Json Web Token to define access permissions for the resources.
+    The SoftDesk API is a RESTful API built using Django Rest Framework
+    with the objective to develop a secured and efficient backend
+    interface to serve different front-end applications. The API uses
+    Json Web Token to define access permissions for the resources.
 
     The Project resource:
 
-    - Allows authenticated users to access the project where they are contributor or author.
+    - Allows authenticated users to access the project where they are
+    contributor or author.
     - Allows authenticated users to edit the project they are author.
     - Provides basic filtering to search for a specific project.
 
@@ -137,13 +157,14 @@ class ProjectViewSet(UtilityViewSet):
     - To create a new project:
     POST /api/v1/projects/
     - For a specific project (contributors only):
-    GET /api/v1/projects/<pk\>/
+    GET /api/v1/projects/{{pk}}/
     - To update a project (partial or full, author only):
-    PATCH or PUT /api/v1/projects/<pk\>/
+    PATCH or PUT /api/v1/projects/{{pk}}/
     - To delete a project (author only):
-    DELETE /api/v1/projects/<pk\>/
+    DELETE /api/v1/projects/{{pk}}/
 
-    If you want to see the list of all the users, please refer to the [users endpoint](/api/v1/users/).
+    If you want to see the list of all the users, please refer to the
+    [users endpoint](/api/v1/users/).
     """
     serializer_class = ProjectListSerializer
     serializer_map = {
@@ -172,22 +193,26 @@ class ProjectViewSet(UtilityViewSet):
 
     def perform_create(self, serializer):
         """
-        Add the user that created the resource as its author. If a resource with the same name created by the same
-        user exist, it catches the error sent by the model.
+        Add the user that created the resource as its author. If a
+        resource with the same name created by the same user exist, it
+        catches the error sent by the model.
         """
         author = self.request.user
 
         try:
             serializer.save(author=author)
         except IntegrityError:
-            raise ValidationError({'error': f"Vous avez déjà créé un projet avec ce nom."})
+            raise ValidationError(
+                {'error': "Vous avez déjà créé un projet avec ce nom."}
+            )
 
 
 class ContributorViewSet(UtilityViewSet):
     """
-    The SoftDesk API is a RESTful API built using Django Rest Framework with the objective
-    to develop a secured and efficient backend interface to serve different front-end applications.
-    The API uses Json Web Token to define access permissions for the resources.
+    The SoftDesk API is a RESTful API built using Django Rest Framework
+    with the objective to develop a secured and efficient backend
+    interface to serve different front-end applications. The API uses
+    Json Web Token to define access permissions for the resources.
 
     The Contributor resource:
 
@@ -198,13 +223,13 @@ class ContributorViewSet(UtilityViewSet):
     An example of usage:
 
     - To retrieve a list of all contributors:
-    GET /api/v1/projects/<project_pk\>/contributors/
+    GET /api/v1/projects/{{project_pk}}/contributors/
     - To add a new contributor (project author only):
-    POST /api/v1/projects/<project_pk\>/contributors/
+    POST /api/v1/projects/{{project_pk}}/contributors/
     - For a specific contributor (concerned user or project author):
-    GET /api/v1/projects/<project_pk\>/contributors/<pk\>/
+    GET /api/v1/projects/{{project_pk}}/contributors/{{pk}}/
     - To remove a contributor (concerned user or project author):
-    DELETE /api/v1/projects/<project_pk\>/contributors/<pk\>/
+    DELETE /api/v1/projects/{{project_pk}}/contributors/{{pk}}/
     """
     serializer_class = ContributorListSerializer
     serializer_map = {
@@ -235,24 +260,34 @@ class ContributorViewSet(UtilityViewSet):
 
     def perform_create(self, serializer):
         """
-        Get the current project from the kwargs dict found in the view : {"project_pk":<int>}
+        Get the current project from the kwargs dict found in the view :
+         {"project_pk":{{int>}
         Try to add a specific user as a contributor to the project,
-        if the user is already a contributor, it catches the error sent by the model.
+        if the user is already a contributor, it catches the error sent
+        by the model.
         """
-        project = Project.objects.get(pk=self.kwargs['project_pk'])
+        project = Project.objects.get(
+            pk=self.kwargs['project_pk']
+        )
         user = serializer.validated_data['user']
 
         try:
-            serializer.save(project=project, user=user)
+            serializer.save(
+                project=project,
+                user=user
+            )
         except IntegrityError:
-            raise ValidationError({"error": 'Cet utilisateur est déjà contributeur du projet'})
+            raise ValidationError(
+                {"error": 'Cet utilisateur est déjà contributeur du projet'}
+            )
 
 
 class IssueViewSet(UtilityViewSet):
     """
-    The SoftDesk API is a RESTful API built using Django Rest Framework with the objective
-    to develop a secured and efficient backend interface to serve different front-end applications.
-    The API uses Json Web Token to define access permissions for the resources.
+    The SoftDesk API is a RESTful API built using Django Rest Framework
+    with the objective to develop a secured and efficient backend
+    interface to serve different front-end applications. The API uses
+    Json Web Token to define access permissions for the resources.
 
     The Issue resource:
 
@@ -263,16 +298,17 @@ class IssueViewSet(UtilityViewSet):
 
     An example of usage:
 
-    - To retrieve a list of all the issue for a project (project contributor only) :
-    GET /api/v1/projects/<project_pk\>/issues/
+    - To retrieve a list of all the issue for a project (project
+    contributor only) :
+    GET /api/v1/projects/{{project_pk}}/issues/
     - To add a new issue (project contributor only):
-    POST /api/v1/projects/<project_pk\>/issues/
+    POST /api/v1/projects/{{project_pk}}/issues/
     - For a specific issue (project contributor only):
-    GET /api/v1/projects/<project_pk\>/issues/<pk\>/
+    GET /api/v1/projects/{{project_pk}}/issues/{{pk}}/
     - To update an issue (partial or full, issue author only):
-    PATCH or PUT /api/v1/projects/<project_pk\>/issues/<pk\>/
+    PATCH or PUT /api/v1/projects/{{project_pk}}/issues/{{pk}}/
     - To remove an issue (issue author or project author):
-    DELETE /api/v1/projects/<project_pk\>/issues/<pk\>/
+    DELETE /api/v1/projects/{{project_pk}}/issues/{{pk}}/
     """
     serializer_class = IssueListSerializer
     serializer_map = {
@@ -304,43 +340,53 @@ class IssueViewSet(UtilityViewSet):
 
     def perform_create(self, serializer):
         """
-        Get the current project from the kwargs dict found in the view : {"project_pk":<int>}
-        If an issue with the same name, for the same project by the same author exists,
-        it catches the error sent by the model.
+        Get the current project from the kwargs dict found in the view :
+         {"project_pk":{{int>}
+        If an issue with the same name, for the same project by the same
+        author exists, it catches the error sent by the model.
         """
         project = Project.objects.get(pk=self.kwargs['project_pk'])
         author = self.request.user
         try:
             serializer.save(project=project, author=author)
         except IntegrityError:
-            raise ValidationError({'error': f"Vous avez déjà créé un issue avec ce nom dans ce projet."})
+            raise ValidationError(
+                {'error': "Vous avez déjà créé un issue avec ce nom dans ce "
+                          "projet."}
+            )
 
 
 class CommentViewSet(UtilityViewSet):
     """
-    The SoftDesk API is a RESTful API built using Django Rest Framework with the objective
-    to develop a secured and efficient backend interface to serve different front-end applications.
-    The API uses Json Web Token to define access permissions for the resources.
+    The SoftDesk API is a RESTful API built using Django Rest Framework
+    with the objective to develop a secured and efficient backend
+    interface to serve different front-end applications. The API uses
+    Json Web Token to define access permissions for the resources.
 
     The Comment resource:
 
     - Allows project contributors to add a new comment to the issue.
     - Allows comment author to modify their own comment.
-    - Allows comment author and the project's author to delete a comment.
+    - Allows comment author and the project's author to delete a
+    comment.
     - Provides basic filtering to search for specific contributor.
 
     An example of usage:
 
-    - To retrieve a list of all the comment for an issue (project contributor only) :
-    GET /api/v1/projects/<project_pk\>/issues/<issue_pk\>/comments/
+    - To retrieve a list of all the comment for an issue (project
+    contributor only) :
+    GET /api/v1/projects/{{project_pk}}/issues/{{issue_pk}}/comments/
     - To add a new comment (project contributor only):
-    POST /api/v1/projects/<project_pk\>/issues/<issue_pk\>/comments/
+    POST /api/v1/projects/{{project_pk}}/issues/{{issue_pk}}/comments/
     - For a specific comment (project contributor only):
-    GET /api/v1/projects/<project_pk\>/issues/<issue_pk\>/comments/<pk\>/
+    GET
+    /api/v1/projects/{{project_pk}}/issues/{{issue_pk}}/comments/{{pk}}/
     - To update a comment (partial or full, comment author only):
-    PATCH or PUT /api/v1/projects/<project_pk\>/issues/<issue_pk\>/comments/<pk\>/
+    PATCH or PUT
+    /api/v1/projects/{{project_pk}}/issues/{{issue_pk}}/comments/{{pk}}/
     - To remove a comment (comment author or project author):
-    DELETE /api/v1/projects/<project_pk\>/issues/<issue_pk\>/comments/<pk\>/
+    DELETE
+    /api/v1/projects/{{project_pk}}/issues/{{issue_pk}}/comments/{{pk}}/
     """
     serializer_class = CommentListSerializer
     serializer_map = {
@@ -373,7 +419,8 @@ class CommentViewSet(UtilityViewSet):
 
     def perform_create(self, serializer):
         """
-        Get the current project from the kwargs dict found in the view : {"issue_pk":<int>}
+        Get the current project from the kwargs dict found in the view :
+        {"issue_pk":int}
         """
         issue = Issue.objects.get(pk=self.kwargs['issue_pk'])
         author = self.request.user

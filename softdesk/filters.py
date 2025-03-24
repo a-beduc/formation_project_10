@@ -1,5 +1,4 @@
 from django_filters import rest_framework as filters
-from django.db.models import Q
 from softdesk.models import Project, Issue, Contributor, Comment
 
 
@@ -23,7 +22,10 @@ class ProjectFilterSet(filters.FilterSet):
 
     def filter_my_project(self, queryset, name, value):
         """
-        Filter query to only keep the projects where the request.user is a contributor.
+        Filter query to only keep the projects where the user is a
+        contributor.
+        NB : If a user is the project's author, he will always be a
+        contributor.
         """
         if value:
             user = self.request.user
@@ -32,7 +34,14 @@ class ProjectFilterSet(filters.FilterSet):
 
     class Meta:
         model = Project
-        fields = ['project_id', 'title', 'title_contains', 'type', 'author_id', 'my_projects']
+        fields = [
+            'project_id',
+            'title',
+            'title_contains',
+            'type',
+            'author_id',
+            'my_projects'
+        ]
 
 
 class IssueFilterSet(filters.FilterSet):
@@ -41,7 +50,8 @@ class IssueFilterSet(filters.FilterSet):
     """
     issue_id = filters.NumberFilter(
         field_name='id',
-        lookup_expr='iexact')
+        lookup_expr='iexact'
+    )
     title_contains = filters.CharFilter(
         field_name="title", lookup_expr='icontains'
     )
@@ -49,14 +59,23 @@ class IssueFilterSet(filters.FilterSet):
         field_name='author__id',
         lookup_expr='exact'
     )
-    to_user = filters.NumberFilter(
-        field_name='to_user__id',
+    assigned_to = filters.NumberFilter(
+        field_name='assigned_to__id',
         lookup_expr='exact'
     )
 
     class Meta:
         model = Issue
-        fields = ['issue_id', 'title', 'title_contains', 'author_id', 'to_user', 'priority', 'type', 'status']
+        fields = [
+            'issue_id',
+            'title',
+            'title_contains',
+            'author_id',
+            'assigned_to',
+            'priority',
+            'type',
+            'status'
+        ]
 
 
 class ContributorFilterSet(filters.FilterSet):
@@ -65,7 +84,8 @@ class ContributorFilterSet(filters.FilterSet):
     """
     user_id = filters.NumberFilter(
         field_name='user__id',
-        lookup_expr='iexact')
+        lookup_expr='iexact'
+    )
 
     class Meta:
         model = Contributor

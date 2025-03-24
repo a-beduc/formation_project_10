@@ -6,9 +6,12 @@ from softdesk.models import Project, Contributor
 @receiver(post_save, sender=Project)
 def assign_contributor(instance, created, **kwargs):
     """
-    Signal to automatically create a Contributor link between a Project and its Author after a Project is saved in the
-    Database.
+    Signal to automatically create a Contributor link between a Project
+    and its Author after a Project is saved in the Database.
     """
     if created:
-        contributor = Contributor(user=instance.author, project=instance)
+        contributor = Contributor(
+            user=instance.author,
+            project=instance
+        )
         contributor.save()
