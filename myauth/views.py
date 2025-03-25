@@ -6,8 +6,7 @@ from django.contrib.auth import get_user_model
 from myauth.serializers import (
     UserListSerializer,
     UserDetailSerializer,
-    UserCreateSerializer,
-    UserUpdateSerializer
+    UserPostSerializer,
 )
 
 from myauth.permissions import IsAdminAuthenticated, IsOwner
@@ -45,9 +44,9 @@ class UserViewSet(ModelViewSet):
     serializer_class = UserListSerializer
     serializer_map = {
         'list': UserListSerializer,
-        'create': UserCreateSerializer,
-        'update': UserUpdateSerializer,
-        'partial_update': UserUpdateSerializer,
+        'create': UserPostSerializer,
+        'update': UserPostSerializer,
+        'partial_update': UserPostSerializer,
         'retrieve': UserDetailSerializer
     }
 

@@ -1,5 +1,6 @@
 from django.contrib.auth.password_validation import validate_password
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError as DjangoValidationError
+from rest_framework.serializers import ValidationError as DRFValidationError
 from rest_framework.serializers import (ModelSerializer,
                                         HyperlinkedIdentityField,
                                         CharField)
@@ -55,14 +56,14 @@ class UserSummarySerializer(ModelSerializer):
         ]
 
 
-class UserCreateSerializer(ModelSerializer):
+class UserPostSerializer(ModelSerializer):
     """
-    Serializer for the User model. Serializer for creating a new User
-    with password validation that respect Django auth validators.
+    Serializer for the User model. Serializer for creating a new User or
+    updating an existing one.
     """
     password = CharField(
         write_only=True,
-        required=True,
+        required=False,
         style={'input_type': 'password'},
     )
 
@@ -83,8 +84,8 @@ class UserCreateSerializer(ModelSerializer):
         """
         try:
             validate_password(password)
-        except ValidationError as e:
-            raise ValidationError(e.messages)
+        except DjangoValidationError as e:
+            raise DjangoValidationError(e.messages)
         return password
 
     def create(self, validated_data):
@@ -92,33 +93,16 @@ class UserCreateSerializer(ModelSerializer):
         Method called when a user is created, hash the password before
         saving it in the database.
         """
+        if ('password' not in validated_data.keys() or
+                not validated_data['password']):
+            raise DRFValidationError(
+                {"password": ["Password is required"]}
+            )
         plain_password = validated_data.pop('password', None)
-        user = super(UserCreateSerializer, self).create(validated_data)
+        user = super(UserPostSerializer, self).create(validated_data)
         user.set_password(plain_password)
         user.save()
         return user
-
-
-class UserUpdateSerializer(ModelSerializer):
-    """
-    Serializer for the User model. Serializer for updating an existing
-    User.
-    """
-    password = CharField(
-        write_only=True,
-        required=False,
-        style={'input_type': 'password'},
-    )
-
-    class Meta:
-        model = User
-        fields = [
-            'username',
-            'password',
-            'date_of_birth',
-            'can_be_contacted',
-            'can_data_be_shared',
-        ]
 
     def update(self, instance, validated_data):
         """
@@ -126,7 +110,7 @@ class UserUpdateSerializer(ModelSerializer):
         modified, hash the password before saving it in the database.
         """
         plain_password = validated_data.pop('password', None)
-        user = super(UserUpdateSerializer, self).update(
+        user = super(UserPostSerializer, self).update(
             instance, validated_data
         )
         if plain_password:
