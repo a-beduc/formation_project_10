@@ -9,14 +9,11 @@ from rest_framework.permissions import IsAuthenticated
 
 from softdesk.models import Project, Contributor, Issue, Comment
 from softdesk.serializers import (
-    ProjectListSerializer, ProjectDetailSerializer, ProjectCreateSerializer,
-    ProjectUpdateSerializer,
+    ProjectListSerializer, ProjectDetailSerializer, ProjectPostSerializer,
     ContributorListSerializer, ContributorDetailSerializer,
-    ContributorCreateSerializer,
-    IssueListSerializer, IssueDetailSerializer, IssueCreateSerializer,
-    IssueUpdateSerializer,
-    CommentListSerializer, CommentDetailSerializer, CommentCreateSerializer,
-    CommentUpdateSerializer
+    ContributorPostSerializer,
+    IssueListSerializer, IssueDetailSerializer, IssuePostSerializer,
+    CommentListSerializer, CommentDetailSerializer, CommentPostSerializer,
 )
 from softdesk.permissions import (
     IsProjectAuthor, IsProjectContributor, IsResourceAuthor, IsUserContributor
@@ -170,8 +167,7 @@ class ProjectViewSet(UtilityViewSet):
     serializer_map = {
         'list': ProjectListSerializer,
         'retrieve': ProjectDetailSerializer,
-        ('update', 'partial_update'): ProjectUpdateSerializer,
-        'create': ProjectCreateSerializer,
+        ('create', 'update', 'partial_update'): ProjectPostSerializer,
     }
     permission_map = {
         'retrieve': [
@@ -235,7 +231,7 @@ class ContributorViewSet(UtilityViewSet):
     serializer_map = {
         'list': ContributorListSerializer,
         'retrieve': ContributorDetailSerializer,
-        'create': ContributorCreateSerializer,
+        'create': ContributorPostSerializer,
     }
     permission_map = {
         'create': [
@@ -314,8 +310,7 @@ class IssueViewSet(UtilityViewSet):
     serializer_map = {
         'list': IssueListSerializer,
         'retrieve': IssueDetailSerializer,
-        'create': IssueCreateSerializer,
-        ('update', 'partial_update'): IssueUpdateSerializer,
+        ('create', 'update', 'partial_update'): IssuePostSerializer,
     }
     permission_map = {
         ('update', 'partial_update'): [
@@ -392,8 +387,7 @@ class CommentViewSet(UtilityViewSet):
     serializer_map = {
         'list': CommentListSerializer,
         'retrieve': CommentDetailSerializer,
-        'create': CommentCreateSerializer,
-        ('update', 'partial_update'): CommentUpdateSerializer,
+        ('create', 'update', 'partial_update'): CommentPostSerializer,
     }
     permission_map = {
         ('update', 'partial_update'): [

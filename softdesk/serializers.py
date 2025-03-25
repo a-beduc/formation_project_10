@@ -60,7 +60,7 @@ class ContributorSummarySerializer(ModelSerializer):
         ]
 
 
-class ContributorCreateSerializer(ModelSerializer):
+class ContributorPostSerializer(ModelSerializer):
     """
     Serializer for the Contributor model. Serializer for creating a new
     Contributor.
@@ -133,24 +133,10 @@ class ProjectDetailSerializer(ModelSerializer):
         ]
 
 
-class ProjectCreateSerializer(ModelSerializer):
+class ProjectPostSerializer(ModelSerializer):
     """
     Serializer for the Project model. Serializer for creating a new
-    Project.
-    """
-    class Meta:
-        model = Project
-        fields = [
-            'title',
-            'description',
-            'type',
-        ]
-
-
-class ProjectUpdateSerializer(ModelSerializer):
-    """
-    Serializer for the Project model. Serializer for updating a new
-    Project.
+    Project or updating an existing one.
     """
     class Meta:
         model = Project
@@ -222,26 +208,15 @@ class CommentSummarySerializer(ModelSerializer):
         ]
 
 
-class CommentCreateSerializer(ModelSerializer):
+class CommentPostSerializer(ModelSerializer):
     """
     Serializer for the Comment model. Serializer for creating a new
-    Comment.
+    Comment or updating an existing one
     """
     class Meta:
         model = Comment
         fields = [
             'content',
-        ]
-
-
-class CommentUpdateSerializer(ModelSerializer):
-    """
-    Serializer for the Comment model. Serializer for updating a Comment.
-    """
-    class Meta:
-        model = Comment
-        fields = [
-            'content'
         ]
 
 
@@ -310,42 +285,10 @@ class IssueDetailSerializer(ModelSerializer):
         ]
 
 
-class IssueCreateSerializer(ModelSerializer):
+class IssuePostSerializer(ModelSerializer):
     """
-    Serializer for the Issue model. Serializer for creating a new issue.
-    """
-    assigned_to = PrimaryKeyRelatedField(
-        queryset=User.objects.none(),
-        allow_null=True,
-    )
-
-    class Meta:
-        model = Issue
-        fields = [
-            'title',
-            'description',
-            'assigned_to',
-            'priority',
-            'type',
-            'status',
-        ]
-
-    def __init__(self, *args, **kwargs):
-        """
-        Look for a project's contributors and give the list to the
-        "assigned_to" field to limit the choices of designated users to
-        the contributors of the project only.
-        """
-        super().__init__(*args, **kwargs)
-        project_pk = self.context['view'].kwargs['project_pk']
-        self.fields["assigned_to"].queryset = User.objects.filter(
-            contributor__project_id=project_pk
-        )
-
-
-class IssueUpdateSerializer(ModelSerializer):
-    """
-    Serializer for the Issue model. Serializer for updating an issue.
+    Serializer for the Issue model. Serializer for creating a new issue
+    or updating an existing one.
     """
     assigned_to = PrimaryKeyRelatedField(
         queryset=User.objects.none(),
@@ -374,3 +317,4 @@ class IssueUpdateSerializer(ModelSerializer):
         self.fields["assigned_to"].queryset = User.objects.filter(
             contributor__project_id=project_pk
         )
+
