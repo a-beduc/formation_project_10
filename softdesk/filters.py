@@ -8,17 +8,24 @@ class ProjectFilterSet(filters.FilterSet):
     """
     project_id = filters.NumberFilter(
         field_name='id',
-        lookup_expr='iexact')
+        lookup_expr='iexact'
+    )
+    title = filters.CharFilter(
+        field_name="title",
+        lookup_expr="iexact"
+    )
     title_contains = filters.CharFilter(
-        field_name="title", lookup_expr='icontains'
+        field_name="title",
+        lookup_expr='icontains'
     )
     author_id = filters.NumberFilter(
         field_name='author__id',
-        lookup_expr='exact'
+        lookup_expr='iexact',
     )
     my_projects = filters.BooleanFilter(
         label='my project :',
-        method='filter_my_project')
+        method='filter_my_project'
+    )
 
     def filter_my_project(self, queryset, name, value):
         """
@@ -52,8 +59,13 @@ class IssueFilterSet(filters.FilterSet):
         field_name='id',
         lookup_expr='iexact'
     )
+    title = filters.CharFilter(
+        field_name="title",
+        lookup_expr="iexact"
+    )
     title_contains = filters.CharFilter(
-        field_name="title", lookup_expr='icontains'
+        field_name="title",
+        lookup_expr='icontains'
     )
     author_id = filters.NumberFilter(
         field_name='author__id',

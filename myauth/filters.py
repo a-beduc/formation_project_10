@@ -5,7 +5,12 @@ from myauth.models import User
 class UserFilter(filters.FilterSet):
     user_id = filters.NumberFilter(
         field_name='id',
-        lookup_expr='iexact')
+        lookup_expr='iexact'
+    )
+    username = filters.CharFilter(
+        field_name='username',
+        lookup_expr='iexact'
+    )
     username_contains = filters.CharFilter(
         field_name='username',
         lookup_expr='icontains'
