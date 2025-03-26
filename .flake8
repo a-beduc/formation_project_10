@@ -1,0 +1,6 @@
+[flake8]
+exclude =
+    myauth/migrations,
+    .venv,
+    manage.py,
+    softdesk/migrations,
