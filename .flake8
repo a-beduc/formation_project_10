@@ -1,6 +1,6 @@
 [flake8]
 exclude =
-    myauth/migrations,
+    src/myauth/migrations,
     .venv,
-    manage.py,
-    softdesk/migrations,
+    src/manage.py,
+    src/softdesk/migrations,
