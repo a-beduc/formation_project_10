@@ -93,14 +93,23 @@ class UserPostSerializer(ModelSerializer):
         Method called when a user is created, hash the password before
         saving it in the database.
         """
-        if ('password' not in validated_data.keys() or
-                not validated_data['password']):
+        if not ('password' in validated_data.keys() and
+                validated_data['password']):
             raise DRFValidationError(
                 {"password": ["Password is required"]}
             )
-        plain_password = validated_data.pop('password', None)
-        user = super(UserPostSerializer, self).create(validated_data)
-        user.set_password(plain_password)
+
+        user = User(**validated_data)
+
+        # hash password and verify it complies with Django auth validators
+        user.set_password(validated_data.pop('password', None))
+
+        # use user.clean() method to verify date_of_birth
+        try:
+            user.clean()
+        except DjangoValidationError as e:
+            raise DRFValidationError(e.messages)
+
         user.save()
         return user
 
@@ -109,11 +118,19 @@ class UserPostSerializer(ModelSerializer):
         Method called when a user's data are updated, if the password is
         modified, hash the password before saving it in the database.
         """
+        # hash password and verify it complies with Django auth validators
         plain_password = validated_data.pop('password', None)
-        user = super(UserPostSerializer, self).update(
-            instance, validated_data
-        )
         if plain_password:
-            user.set_password(plain_password)
-            user.save()
-        return user
+            instance.set_password(plain_password)
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        # use user.clean() method to verify date_of_birth
+        try:
+            instance.clean()
+        except DjangoValidationError as e:
+            raise DRFValidationError(e.messages)
+
+        instance.save()
+        return instance
