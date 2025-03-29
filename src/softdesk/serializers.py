@@ -317,4 +317,3 @@ class IssuePostSerializer(ModelSerializer):
         self.fields["assigned_to"].queryset = User.objects.filter(
             contributor__project_id=project_pk
         )
-

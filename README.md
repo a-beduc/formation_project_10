@@ -6,7 +6,7 @@ OpenClassrooms.
 <p align="center">
     <img    alt="Logo of the Softdesk company" 
             style="width:70%; height:auto;" 
-            src="mystatic/images/softdesk_banner.png" 
+            src="src/mystatic/images/softdesk_banner.png" 
             title="Logo of SoftDesk" />
 </p>
 
@@ -16,87 +16,93 @@ This is Django REST API application created for a fictitious company called
 SoftDesk Support. The application functions as a locally hosted API where users
 can interact with projects, issues and comments as a team of project's 
 contributors. Developed with **Django Rest Framework**, it proposes an 
-authentication system using **JWT** (Json Web Token), access based on permissions and
-basic filters.
+authentication system using **JWT** (Json Web Token), access based on 
+permissions and basic filters.
 
 
 ## Installation & Launch
 
 Ensure you have the following installed on your system:
 
-- [Python 3.x](https://www.python.org/downloads/)
+- [Python 3.7+](https://www.python.org/downloads/)
+  - Tested with Python 3.12 should work on Python 3.7+.
+- [Pipenv](https://pipenv.pypa.io/en/latest/installation.html)
 
 ### Steps to Install
 
-1. Clone the project or download the files to your local machine:
+1. Open a terminal and navigate to your desired directory. 
+2. Clone the project or download the files to your local machine:
 
     ```bash
     git clone https://github.com/a-beduc/formation_project_10
     ```
-2. Open a terminal and navigate to the project directory.
 3. Create a virtual environment:
 
     ```bash
-    python -m venv venv
+    pipenv shell
     ```
-4. Activate the virtual environment:
-    - On Windows:
-   
-        ```bash
-        cd venv/Scripts
-        activate
-        cd ../..
-        ```
-    - On macOS/Linux:
-   
-        ```bash
-        source venv/bin/activate
-        ```
-5. Install the required packages:
 
+   - ***(Optional)** You can verify if the virtual environment is correctly created with the 
+following command which should give you the path of the current virtual 
+environment:*
     ```bash
-    pip install -r requirements.txt
+    pipenv --venv
     ```
-6. (Optional) If you want a new Database, 
-   - Delete the current data
-     - Delete the db.sqlite3 in the root directory
-     - Delete the files found in /media
 
-   - Apply migrations
-     - Make sure you are in the project's root directory
+   - ***(Optional)** You can stop your virtual environment with:*
+    ```bash
+    exit
+    ```
+   
+    - ***(Optional)** and reactivate it with:*
+   ```bash
+    pipenv shell
+    ```
+
+4. Install dependencies:
+    ```bash
+    pipenv install
+    ```
+
+   - ***(Optional)** For development tools (linters), you can also install dev dependencies:*
+    ```bash
+    pipenv install --dev
+    ```
+5. ***(Optional)** If you want a new and clean Database*
+   - *Delete the current data*
+     - *Delete the db.sqlite3 in the src/ directory*
+
+   - *Apply migrations*
+     - *Make sure you are in the project's src/ directory*
 
          ```bash
          python manage.py migrate
          ```
-   
-- Create an admin user to access the Admin panel.
-   ```bash
-   python manage.py createsuperuser
-   ```
-   ```
-   Username: <Your choice>
-   Emailaddress: example@gmail.com
-   Password: ******
-   Password(again): ******
-   ```
+   - Create an admin user to access the Admin panel. 
+   *You can follow the process to create a new superuser with this 
+   [w3school tutorial](https://www.w3schools.com/django/django_admin_create_user.php)*
 
-7. Generate a SECRET_KEY:
-   * Create a .env file at the root of the project by copying the content .env.example 
+6. Generate a SECRET_KEY:
+   * Create a .env file at the root of the project (not in /src) by copying the content .env.example 
    * Go to https://djecrety.ir/ to generate a Django SECRET_KEY 
    * Paste the generated key as a string in the .env
    * It should look like : SECRET_KEY='your_unique_generated_secret_key'
 
-
-8. Run the server:
+7. Navigate to the src directory and start the server:
 
     ```bash
     python manage.py runserver
     ``` 
 8. Access the application:
-
+    
+    With a web browser:
     ```
     http://127.0.0.1:8000
+   or
+   http://127.0.0.1:8000/api/v1/
     ```
+   
+    With postman : **[LINK COLLECTION POSTMAN TO DO]**
 
 ### Site Administration
 
@@ -110,9 +116,9 @@ Access the admin panel: http://127.0.0.1:8000/admin
 
 ### Test Users
    ```
-   username: user_one     | password: 53CR37!
-   username: user_two     | password: 53CR37!
-   username: user_thr     | password: 53CR37!
+   username: user_one     | password: 53CR37!U53R
+   username: user_two     | password: 53CR37!U53R
+   username: user_thr     | password: 53CR37!U53R
    ```
 
 ## API's Endpoints
@@ -139,13 +145,13 @@ following a table to learn more.
 ---
 
 ### Users
-| #                | API Endpoints            | HTTP Method | URL base: `http//127.0.0.1:8000/api/v1` |
-|------------------|--------------------------|-------------|-----------------------------------------|  
-| 3 <a id="3"></a> | Get the list of users    | `GET`       | `/users/`                               |
-| 4                | Get the detail of a user | `GET`       | `/users/:user_id/`                      |
-| 5                | Create a new user        | `POST`      | `/users/`                               |
-| 6                | Delete a user            | `DELETE`    | `/users/:user_id/`                      |
-| 7                | Update a user            | `UPDATE`    | `/users/:user_id/`                      |
+| #                | API Endpoints            | HTTP Method       | URL base: `http//127.0.0.1:8000/api/v1` |
+|------------------|--------------------------|-------------------|-----------------------------------------|  
+| 3 <a id="3"></a> | Get the list of users    | `GET`             | `/users/`                               |
+| 4                | Get the detail of a user | `GET`             | `/users/:user_id/`                      |
+| 5                | Create a new user        | `POST`            | `/users/`                               |
+| 6                | Delete a user            | `DELETE`          | `/users/:user_id/`                      |
+| 7                | Update a user            | `PUT` or `PATCH`  | `/users/:user_id/`                      |
 
 #### Permissions
 3. List endpoint, can be reached by any user.
@@ -165,13 +171,13 @@ username containing the search term. The search is case-free.
 ---
 
 ### Projects
-| #                | API Endpoints               | HTTP Method | URL base: `http//127.0.0.1:8000/api/v1` |
-|------------------|-----------------------------|-------------|-----------------------------------------|  
-| 8 <a id="8"></a> | Get the list of projects    | `GET`       | `/projects/`                            |
-| 9                | Get the detail of a project | `GET`       | `/projects/:project_id/`                |
-| 10               | Create a new project        | `POST`      | `/projects/`                            |
-| 11               | Delete a project            | `DELETE`    | `/projects/:project_id/`                |
-| 12               | Update a project            | `UPDATE`    | `/projects/:project_id/`                |
+| #                | API Endpoints               | HTTP Method       | URL base: `http//127.0.0.1:8000/api/v1` |
+|------------------|-----------------------------|-------------------|-----------------------------------------|  
+| 8 <a id="8"></a> | Get the list of projects    | `GET`             | `/projects/`                            |
+| 9                | Get the detail of a project | `GET`             | `/projects/:project_id/`                |
+| 10               | Create a new project        | `POST`            | `/projects/`                            |
+| 11               | Delete a project            | `DELETE`          | `/projects/:project_id/`                |
+| 12               | Update a project            | `PUT` or `PATCH`  | `/projects/:project_id/`                |
 
 #### Permissions
 8. List endpoint, can be reached by any user.
@@ -225,13 +231,13 @@ in the database.
 ---
 
 ### Issues
-| #                  | API Endpoints               | HTTP Method | URL (base: http//127.0.0.1:8000/api/v1)   |
-|--------------------|-----------------------------|-------------|-------------------------------------------|  
-| 17 <a id="17"></a> | Get the list of projects    | `GET`       | `/projects/:project_id/issues/`           |
-| 18                 | Get the detail of a project | `GET`       | `/projects/:project_id/issues/:issue_id/` |
-| 19                 | Create a new project        | `POST`      | `/projects/:project_id/issues/`           |
-| 20                 | Delete a project            | `DELETE`    | `/projects/:project_id/issues/:issue_id/` |
-| 21                 | Update a project            | `UPDATE`    | `/projects/:project_id/issues/:issue_id/` |
+| #                  | API Endpoints               | HTTP Method       | URL (base: http//127.0.0.1:8000/api/v1)   |
+|--------------------|-----------------------------|-------------------|-------------------------------------------|  
+| 17 <a id="17"></a> | Get the list of projects    | `GET`             | `/projects/:project_id/issues/`           |
+| 18                 | Get the detail of a project | `GET`             | `/projects/:project_id/issues/:issue_id/` |
+| 19                 | Create a new project        | `POST`            | `/projects/:project_id/issues/`           |
+| 20                 | Delete a project            | `DELETE`          | `/projects/:project_id/issues/:issue_id/` |
+| 21                 | Update a project            | `PUT` or `PATCH`  | `/projects/:project_id/issues/:issue_id/` |
 
 
 #### Permissions
@@ -276,13 +282,13 @@ of the following predefined options (case-sensitive):
 ---
 
 ### Comments
-| #                  | API Endpoints               | HTTP Method | URL base: `http//127.0.0.1:8000/api/v1`                          |
-|--------------------|-----------------------------|-------------|------------------------------------------------------------------|  
-| 22 <a id="22"></a> | Get the list of projects    | `GET`       | `/projects/:project_id/issues/:issue_id/comments/`               |
-| 23                 | Get the detail of a project | `GET`       | `/projects/:project_id/issues/:issue_id/comments/:comment_uuid/` |
-| 24                 | Create a new project        | `POST`      | `/projects/:project_id/issues/:issue_id/comments/`               |
-| 25                 | Delete a project            | `DELETE`    | `/projects/:project_id/issues/:issue_id/comments/:comment_uuid/` |
-| 26                 | Update a project            | `UPDATE`    | `/projects/:project_id/issues/:issue_id/comments/:comment_uuid/` |
+| #                  | API Endpoints               | HTTP Method       | URL base: `http//127.0.0.1:8000/api/v1`                          |
+|--------------------|-----------------------------|-------------------|------------------------------------------------------------------|  
+| 22 <a id="22"></a> | Get the list of comments    | `GET`             | `/projects/:project_id/issues/:issue_id/comments/`               |
+| 23                 | Get the detail of a comment | `GET`             | `/projects/:project_id/issues/:issue_id/comments/:comment_uuid/` |
+| 24                 | Create a new comment        | `POST`            | `/projects/:project_id/issues/:issue_id/comments/`               |
+| 25                 | Delete a comment            | `DELETE`          | `/projects/:project_id/issues/:issue_id/comments/:comment_uuid/` |
+| 26                 | Update a comment            | `PUT` or `PATCH`  | `/projects/:project_id/issues/:issue_id/comments/:comment_uuid/` |
 
 #### Permissions
 22. List endpoint, can be reached by the project's author and contributors.
@@ -295,3 +301,6 @@ of the following predefined options (case-sensitive):
 - `/projects/:project_id/issues/:issue_id/comments/?author_id=<:int>` : 
 Get the comments where the specified integer correspond to its author user_id 
 in the database.
+
+## About
+Application created as a student's project for the online course on OpenClassrooms; Python Application Developer.
