@@ -30,79 +30,89 @@ Ensure you have the following installed on your system:
 
 ### Steps to Install
 
-1. Open a terminal and navigate to your desired directory. 
-2. Clone the project or download the files to your local machine:
+**1. Clone the project or download the files to your local machine:**
 
     ```bash
     git clone https://github.com/a-beduc/formation_project_10
     ```
-3. Create a virtual environment:
+   
+**2. Create virtual environnement and install depencencies**
 
-    ```bash
+<details>
+<summary>With Pip</summary>
+
++ Create a virtual environment
+
+    ```
+    python -m venv .venv
+    
+    source .venv/bin/activate  # Linux
+    or
+    .venv\Scripts\activate     # Windows
+    ```
+
++ Install dependencies
+
+   ```
+   pip install -r requirements.txt
+   ```
+</details>
+
+<details>
+<summary>With PipEnv</summary>
+
++ Create a virtual environment
+
+    ```
     pipenv shell
     ```
 
-   - ***(Optional)** You can verify if the virtual environment is correctly created with the 
-following command which should give you the path of the current virtual 
-environment:*
-    ```bash
-    pipenv --venv
-    ```
++ Install dependencies:
 
-   - ***(Optional)** You can stop your virtual environment with:*
-    ```bash
-    exit
+    ```
+    pipenv install            # Only needed dependencies
+    or
+    pipenv install --dev      # Additional dev tools (linters)
     ```
    
-    - ***(Optional)** and reactivate it with:*
-   ```bash
-    pipenv shell
-    ```
+</details>
 
-4. Install dependencies:
-    ```bash
-    pipenv install
-    ```
+-----
 
-   - ***(Optional)** For development tools (linters), you can also install dev dependencies:*
-    ```bash
-    pipenv install --dev
-    ```
-5. ***(Optional)** If you want a new and clean Database*
-   - *Delete the current data*
+<details>
+<summary><b>3. (Optional) If you want a new and clean Database</b></summary>
+
+- *Delete the current data*
      - *Delete the db.sqlite3 in the src/ directory*
 
    - *Apply migrations*
      - *Make sure you are in the project's src/ directory*
 
-         ```bash
+         ```
          python manage.py migrate
          ```
    - Create an admin user to access the Admin panel. 
    *You can follow the process to create a new superuser with this 
    [w3school tutorial](https://www.w3schools.com/django/django_admin_create_user.php)*
 
-6. Generate a SECRET_KEY:
+</details>
+
+**4. Generate a SECRET_KEY:**
    * Create a .env file at the root of the project (not in /src) by copying the content .env.example 
    * Go to https://djecrety.ir/ to generate a Django SECRET_KEY 
    * Paste the generated key as a string in the .env
    * It should look like : SECRET_KEY='your_unique_generated_secret_key'
 
-7. Navigate to the src directory and start the server:
+**5. Navigate to the src directory and start the server:**
 
-    ```bash
-    python manage.py runserver
-    ``` 
-8. Access the application:
+```
+python manage.py runserver
+``` 
+
+**6. Access the application:**
     
-    With a web browser:
-    ```
-    http://127.0.0.1:8000
-   or
-   http://127.0.0.1:8000/api/v1/
-    ```
-   
-    With postman : **[LINK COLLECTION POSTMAN TO DO]**
+With your web browser, open the link : http://127.0.0.1:8000 or http://127.0.0.1:8000/api/v1/
+
 
 ### Site Administration
 
@@ -121,7 +131,14 @@ Access the admin panel: http://127.0.0.1:8000/admin
    username: user_thr     | password: 53CR37!U53R
    ```
 
-## API's Endpoints
+## Postman Documentation
+A postman collection is available at 
+[Documentation postman](https://documenter.getpostman.com/view/42454429/2sB34ZqPrd).
+
+It is not a test suite for the API but a written reference of this API endpoints.
+
+
+## API Endpoints
 Every end points of the API except for the 
 [authentication endpoints](#authentication) needs to carry a way to 
 authenticate users, in the form of a Json Web Token.
